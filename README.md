@@ -7,7 +7,7 @@ Each server needs to part of the Docker Swarm.
 - [Install Docker Engine - Community from Docker's repositories](https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository) (currently installed `Docker version 19.03.1, build 74b1e89`)
 - Perform [post-install steps](https://docs.docker.com/install/linux/linux-postinstall/).
   - Add `ebladmin` to `docker` group. (The group should be already created by install process.)
-  - Create `/etc/docker/daemon.json` (https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/daemon.json) to set up log rotation and [metrics](https://docs.docker.com/config/thirdparty/prometheus/) (required by swarmprom). If the daemon is already running, it needs to be restarted: `service docker restart`. The log configuration only affects new containers.
+  - Copy [daemon.json](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/daemon.json) to `/etc/docker/daemon.json`  to set up log rotation and [metrics](https://docs.docker.com/config/thirdparty/prometheus/) (The metrics are required by swarmprom.). If the daemon is already running, it needs to be restarted: `service docker restart`. The log configuration only affects new containers.
   - Configure Docker to start on boot. Check status `sudo service docker status`
 - Configure the firewall. (Published ports are opened automatically by Docker with iptables and not appear in ufw rules.)
   - Allow connections from all other nodes:
