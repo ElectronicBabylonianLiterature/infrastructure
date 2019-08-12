@@ -15,7 +15,7 @@ Each server needs to part of the Docker Swarm.
 sudo ufw allow proto tcp from <node IP> to any port 2377,7946 comment 'Docker Swarm'
 sudo ufw allow proto udp from <node IP> to any port 7946,4789 comment 'Docker Swarm'
 ```
- - Allow metrics:
+  - Allow metrics:
 ```
 sudo ufw allow from 172.18.0.0/16 to any port 9323 comment 'Docker Metrics'
 ```
