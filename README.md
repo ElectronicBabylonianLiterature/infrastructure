@@ -19,6 +19,6 @@ sudo ufw allow proto udp from <node IP> to any port 7946,4789 comment 'Docker Sw
 ```
 sudo ufw allow from 172.18.0.0/16 to any port 9323 comment 'Docker Metrics'
 ```
-- On the first VM, create a new swarm (https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/)
+- On the first VM, [create a new swarm](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/)
 - On the other VMs, join the swarm. (See the output from creating the swarm or run `docker swarm join-token worker` on the manager.)
 
