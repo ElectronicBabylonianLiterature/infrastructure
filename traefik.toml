@@ -1,0 +1,44 @@
+constraints = ["tag==traefik-public"]
+logLevel = "INFO"
+
+
+[accessLog]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+    
+  
+[acme]
+
+email = "jussi.laasonen@lmu.de"
+storage = "traefik/acme/account"
+entryPoint = "https"
+acmeLogging = true
+onHostRule = true
+
+[acme.httpChallenge]
+
+entryPoint = "http"
+
+
+[docker]
+
+watch = true
+swarmMode = true
+exposedByDefault = false
+
+
+[consul]
+
+endpoint = "consul-leader:8500"
+
+
+[api]
+
+
+[metrics]
+  [metrics.prometheus]
