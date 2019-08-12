@@ -1,0 +1,10 @@
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3",
+    "compress": "true"
+  },
+  "metrics-addr" : "0.0.0.0:9323",
+  "experimental" : true
+}
