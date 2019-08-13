@@ -136,3 +136,22 @@ See: [eses/mongodb_exporter
   - Add `mongoCA.crt` to `secrets`.
 - Import [MongoDB dashboard](https://grafana.com/grafana/dashboards/2583) to Grafana.
 - Edit dashboard JSON and change metric prefix from `mongodb_` to `mongodb_mongod_`.
+
+## Troubleshooting
+
+### Consul fails to elect a leader
+
+ - Scale replicas to 0.
+ - Scale replica back to desired value.
+ 
+When the new replicas join Consul should clean up old nodes and elect a new leader. To avoid stale nodes in the config the replicas should be shut down before the leader.
+ 
+### Redeployment fails
+ 
+Long commands (e.g. `node-exporter`) get messed up and `$` in the . If you have to redeploy a service/stack which has those copy the correct values from above.
+
+### Forgotten Grafana password
+
+The Grafana admin password is set up only on first run. It can be resetted later vie the CLI `docker exec -ti <container id> grafana-cli admin reset-admin-password <new password>`.
+
+
