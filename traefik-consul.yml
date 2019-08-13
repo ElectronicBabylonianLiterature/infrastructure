@@ -1,0 +1,88 @@
+version: '3.3'
+services:
+  consul-leader:
+    image: consul:latest
+    command: agent -server -client=0.0.0.0 -bootstrap-expect=1 -ui
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+      CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true}'
+    volumes:
+     - consul-data-leader:/consul/data
+    networks:
+     - default
+     - traefik-public
+    secrets:
+     - basic_auth_users_v2
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8500'
+        traefik.frontend.rule: Host:consul.cluster.ebabylon.org
+      placement:
+        constraints:
+         - node.hostname == lmkwitg-ebl01
+  consul-replica:
+    image: consul:latest
+    command: agent -server -client=0.0.0.0 -retry-join=consul-leader
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+      CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true}'
+    volumes:
+     - consul-data-replica:/consul/data
+    networks:
+     - default
+     - traefik-public
+    deploy:
+      replicas: 0
+  traefik:
+    image: traefik:v1.7
+    ports:
+     - 80:80
+     - 443:443
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+     - default
+     - traefik-public
+    secrets:
+     - basic_auth_users_v2
+    configs:
+     -
+      source: traefik-config-v2
+      target: /etc/traefik/traefik.toml
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8080'
+        traefik.frontend.rule: Host:traefik.cluster.ebabylon.org
+      placement:
+        constraints:
+         - node.role == manager
+networks:
+  default:
+    driver: overlay
+  traefik-public:
+    external: true
+volumes:
+  consul-data-leader:
+    driver: local
+  consul-data-replica:
+    driver: local
+configs:
+  traefik-config-v2:
+    external: true
+secrets:
+  basic_auth_users_v2:
+    external: true
