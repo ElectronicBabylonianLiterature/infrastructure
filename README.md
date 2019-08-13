@@ -61,6 +61,15 @@ Setup Swarpit to use Traefik. See: [Swarmpit web user interface for your Docker 
 - Remove ports from stack config.
 - Add Traefik network and labels as in [swarmpit.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmpit.yml).
 
-#### Swarmprom
+#### [Swarmprom](https://github.com/stefanprodan/swarmprom)
+
+See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://dockerswarm.rocks/swarmprom/).
+
+- Create the configs:
+  - `dockerd_config` from [swarmprom Caddyfile](https://github.com/stefanprodan/swarmprom/blob/master/dockerd-exporter/Caddyfile).
+  - `node_rules` from [swarmprom swarm_node.rules.yml](https://github.com/stefanprodan/swarmprom/blob/master/prometheus/rules/swarm_node.rules.yml).
+  - `task_rules` from [swarmprom swarm_task.rules.yml](https://github.com/stefanprodan/swarmprom/blob/master/prometheus/rules/swarm_task.rules.yml).
+- Create stack `swarmprom` from [swarmprom.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmprom.yml).
+- Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
 ## MongoDB
