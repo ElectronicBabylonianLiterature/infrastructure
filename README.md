@@ -1,5 +1,7 @@
 # Electronic Babylonian Literature Infrastructure
 
+The Electronic Babylonian Literature application is hosted on Heroku and the database on Docker Swarm in LRZ.
+
 ## LRZ Server Setup
 
 Each server needs to part of the Docker Swarm.
@@ -22,3 +24,21 @@ Each server needs to part of the Docker Swarm.
 - On the first VM, [create a new swarm](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/)
 - On the other VMs, join the swarm. (See the output from creating the swarm or run `docker swarm join-token worker` on the manager.)
 
+## Docker Swarm Setup
+
+### HTTPS, Swarm Manager and Monitoring
+
+We use a setup based on [Docker Swarm Rocks](https://dockerswarm.rocks).
+
+### [Traefik](https://traefik.io/) and [Consul](https://www.consul.io/)
+
+See: [Traefik Proxy with HTTPS](https://dockerswarm.rocks/traefik/)
+
+- Create a network `docker network create --driver=overlay traefik-public`
+- Create a config `traefik-config-v2` from [traefik.toml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/traefik.toml)
+
+### Swarmpit
+
+### Swarmprom
+
+## MongoDB
