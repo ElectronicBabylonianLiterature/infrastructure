@@ -73,3 +73,24 @@ See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://
 - Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
 ## MongoDB
+
+- Create secrets `mongo_admin_user` and `mongo_admin_password` which will be used to create the admin user on the first deploy.
+- Create stack `ebl-mongodb` from [mongodb.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb.yml). Initdb functionality does not work well with SSL, so we enable it in the next step.
+
+### Replica Set and SSL
+
+- Create certificates for the root CA and all of the servers. See: [MongoDB: Deploy a Replica Set With Transport Encryption: Part 3](https://dzone.com/articles/mongodb-deploy-a-replica-set-with-transport-encryp-1).
+- Create secrects `mogoCA.crt`, `ebl01.pem`, and `ebl02` from the respective certificates.
+- Redeploy stack with replica set and SSL enabled from [mongodb-replica_set.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb-replica_set.yml).
+- Initiate the replica set. Login to mongo and run (The hosts must have full address, otherwise it is not possible to connect to the replica set from outside the stack):
+  ```
+  rs.initiate( {
+     _id : "rs-ebl1",
+     members: [
+        { _id: 0, host: "lmkwitg-ebl01.srv.mwn.de:27017" },
+        { _id: 1, host: "lmkwitg-ebl02.srv.mwn.de:27018" }
+     ]
+  })
+  ```
+  
+### Monitoring
