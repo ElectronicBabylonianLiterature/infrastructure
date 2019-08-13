@@ -148,7 +148,7 @@ When the new replicas join Consul should clean up old nodes and elect a new lead
  
 ### Redeployment fails
  
-Long commands (e.g. `node-exporter`) get messed up and `$` in the . If you have to redeploy a service/stack which has those copy the correct values from above.
+Long commands (e.g. `node-exporter`) get messed up and `$` is unescaped in the "Current engine state". If you have to redeploy a service/stack edit the "Last deploeyd instead" or copy the correct values this repository.
 
 ### Forgotten Grafana password
 
