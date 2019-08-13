@@ -135,6 +135,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention=24h'
+      - '--web.external-url https://prometheus.cluster.ebabylon.org'
     environment:
       JOBS: traefik:8080
     secrets:
