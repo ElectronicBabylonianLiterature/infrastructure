@@ -1,0 +1,220 @@
+version: '3.3'
+services:
+  alertmanager:
+    image: stefanprodan/swarmprom-alertmanager:v0.14.0
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    environment:
+      SLACK_CHANNEL: cluster_alerts
+      SLACK_URL: https://hooks.slack.com/services/<token>
+      SLACK_USER: alertmanager
+    secrets:
+     - basic_auth_users_v2
+    volumes:
+     - alertmanager:/alertmanager
+    networks:
+     - default
+     - net
+     - traefik-public
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '9093'
+        traefik.frontend.rule: Host:alertmanager.cluster.ebabylon.org
+      placement:
+        constraints:
+         - node.role == manager
+         - node.hostname == lmkwitg-ebl01
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+  cadvisor:
+    image: google/cadvisor:latest
+    command: -logtostderr -docker_only
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /:/rootfs:ro
+     - /var/run:/var/run
+     - /sys:/sys:ro
+     - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+     - net
+    deploy:
+      mode: global
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+  dockerd-exporter:
+    image: stefanprodan/caddy:latest
+    environment:
+      DOCKER_GWBRIDGE_IP: 172.18.0.1
+    networks:
+     - net
+    configs:
+     -
+      source: dockerd_config
+      target: /etc/caddy/Caddyfile
+    deploy:
+      mode: global
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+  grafana:
+    image: stefanprodan/swarmprom-grafana:5.3.4
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: <password>
+      GF_SECURITY_ADMIN_USER: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: https://grafana.cluster.ebabylon.org
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+     - grafana:/var/lib/grafana
+    networks:
+     - default
+     - net
+     - traefik-public
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '3000'
+        traefik.frontend.rule: Host:grafana.cluster.ebabylon.org
+      placement:
+        constraints:
+         - node.role == manager
+         - node.hostname == lmkwitg-ebl01
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+  node-exporter:
+    image: stefanprodan/swarmprom-node-exporter:v0.16.0
+    command:
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--no-collector.ipvs'
+    environment:
+      NODE_ID: '{{.Node.ID}}'
+    volumes:
+     - /proc:/host/proc:ro
+     - /sys:/host/sys:ro
+     - /:/rootfs:ro
+     - /etc/hostname:/etc/nodename
+    networks:
+     - net
+    deploy:
+      mode: global
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+  prometheus:
+    image: stefanprodan/swarmprom-prometheus:v2.5.0
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=24h'
+    environment:
+      JOBS: traefik:8080
+    secrets:
+     - basic_auth_users_v2
+    volumes:
+     - prometheus:/prometheus
+    networks:
+     - default
+     - net
+     - traefik-public
+    configs:
+     -
+      source: node_rules
+      target: /etc/prometheus/swarm_node.rules.yml
+     -
+      source: task_rules
+      target: /etc/prometheus/swarm_task.rules.yml
+    logging:
+      driver: json-file
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '9090'
+        traefik.frontend.rule: Host:prometheus.cluster.ebabylon.org
+      placement:
+        constraints:
+         - node.role == manager
+         - node.hostname == lmkwitg-ebl01
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 2048M
+  unsee:
+    image: cloudflare/unsee:v0.8.0
+    environment:
+      ALERTMANAGER_URIS: default:http://alertmanager:9093
+    secrets:
+    - basic_auth_users_v2
+    networks:
+     - default
+     - net
+     - traefik-public
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8080'
+        traefik.frontend.rule: Host:unsee.cluster.ebabylon.org
+networks:
+  net:
+    driver: overlay
+    attachable: true
+  traefik-public:
+    external: true
+volumes:
+  alertmanager:
+    driver: local
+  grafana:
+    driver: local
+  prometheus:
+    driver: local
+configs:
+  dockerd_config:
+    external: true
+  node_rules:
+    external: true
+  task_rules:
+    external: true
+secrets:
+  basic_auth_users_v2:
+    external: true
