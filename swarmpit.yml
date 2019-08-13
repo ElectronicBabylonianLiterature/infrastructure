@@ -1,0 +1,75 @@
+version: '3.3'
+services:
+  agent:
+    image: swarmpit/agent:2.1
+    environment:
+      DOCKER_API_VERSION: '1.35'
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+     - net
+    deploy:
+      mode: global
+      labels:
+        swarmpit.agent: 'true'
+      resources:
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+        limits:
+          cpus: '0.1'
+          memory: 64M
+  app:
+    image: swarmpit/swarmpit:1.7
+    environment:
+      SWARMPIT_DB: http://db:5984
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+     - net
+     - traefik-public
+    deploy:
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8080'
+        traefik.frontend.rule: Host:swarmpit.cluster.ebabylon.org
+      placement:
+        constraints:
+         - node.role == manager
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+        limits:
+          cpus: '0.5'
+          memory: 1024M
+  db:
+    image: couchdb:2.3.0
+    volumes:
+     - swarmpit_db-data:/opt/couchdb/data
+    networks:
+     - net
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == lmkwitg-ebl02
+      resources:
+        reservations:
+          cpus: '0.15'
+          memory: 256M
+        limits:
+          cpus: '0.3'
+          memory: 512M
+networks:
+  net:
+    driver: overlay
+  traefik-public:
+    external: true
+volumes:
+  swarmpit_db-data:
+    external: true
