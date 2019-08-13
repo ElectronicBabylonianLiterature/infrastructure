@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+  mongo1:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
+    ports:
+     - 27017:27017
+    volumes:
+     - db1:/data/db
+    secrets:
+     - mongo_admin_user
+     - mongo_admin_password
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == lmkwitg-ebl01
+  mongo2:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
+    ports:
+     - 27018:27017
+    volumes:
+     - db2:/data/db
+    secrets:
+     - mongo_admin_user
+     - mongo_admin_password
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == lmkwitg-ebl02
+volumes:
+  db1:
+    driver: local
+  db2:
+    driver: local
+secrets:
+  mongo_admin_user:
+    external: true
+  mongo_admin_password:
+    external: true
