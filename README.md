@@ -26,11 +26,25 @@ Each server needs to part of the Docker Swarm.
 
 ## Docker Swarm Setup
 
-### HTTPS, Swarm Manager and Monitoring
+### Swarm Manager
+
+- On a manager node install [Swarmpit](https://swarmpit.io) with default options:
+  ```
+  docker run -it --rm \
+    --name swarmpit-installer \
+    --volume /var/run/docker.sock:/var/run/docker.sock \
+  swarmpit/install:1.7
+  ```
+  Swarmpit is now accessible at port 888.
+- Login to create a admin user.
+- Add placement to the `swarmpit_db` service so it will have the access to the original volume (currently on lmkwitg-ebl02).
+- The following steps can be performed via the swarm manager or command line as preferred.
+
+### HTTPS and Monitoring
 
 We use a setup based on [Docker Swarm Rocks](https://dockerswarm.rocks).
 
-### [Traefik](https://traefik.io/) and [Consul](https://www.consul.io/)
+#### [Traefik](https://traefik.io/) and [Consul](https://www.consul.io/)
 
 See: [Traefik Proxy with HTTPS](https://dockerswarm.rocks/traefik/)
 
@@ -40,8 +54,13 @@ See: [Traefik Proxy with HTTPS](https://dockerswarm.rocks/traefik/)
 - Create a secret `basic_auth_users_v2` containing the basic auth users. A hashed password can be created with `openssl passwd -apr1 <password>`
 - Create stack `traefik-consul` from [traefik-consul.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/tree/master)
 
-### Swarmpit
+#### Swarmpit
 
-### Swarmprom
+Setup Swarpit to use Traefik. See: [Swarmpit web user interface for your Docker Swarm cluster](https://dockerswarm.rocks/swarmpit/).
+
+- Remove ports from stack config.
+- Add Traefik network and labels as in [swarmpit.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmpit.yml).
+
+#### Swarmprom
 
 ## MongoDB
