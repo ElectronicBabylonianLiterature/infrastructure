@@ -70,13 +70,13 @@ See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://
   - `dockerd_config` from [swarmprom Caddyfile](https://github.com/stefanprodan/swarmprom/blob/master/dockerd-exporter/Caddyfile).
   - `node_rules` from [swarmprom swarm_node.rules.yml](https://github.com/stefanprodan/swarmprom/blob/master/prometheus/rules/swarm_node.rules.yml).
   - `task_rules` from [swarmprom swarm_task.rules.yml](https://github.com/stefanprodan/swarmprom/blob/master/prometheus/rules/swarm_task.rules.yml).
-- Create stack `swarmprom` from [swarmprom.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmprom.yml).
+- Create stack `swarmprom` from [swarmprom.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmprom.yml). Because [swarmproms Dockerfile](https://github.com/stefanprodan/swarmprom/blob/master/grafana/Dockerfile) defines `GF_SECURITY_ADMIN_PASSWORD` it is not possible to use `GF_SECURITY_ADMIN_PASSWORD__FILE`.
 - Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
 ## MongoDB
 
 - Create secrets `mongo_admin_user` and `mongo_admin_password` which will be used to create the admin user on the first deploy.
-- Create stack `ebl-mongodb` from [mongodb.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb.yml). Initdb functionality does not work well with SSL, so we enable it in the next step.
+- Create stack `ebl-mongodb` from [mongodb.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb.yml). Initdb functionality does not work well with SSL, so we enable it in the next step. See: https://github.com/docker-library/mongo/issues/239 and https://github.com/docker-library/mongo/issues/172.
 
 ### Replica Set and SSL
 
@@ -153,5 +153,3 @@ Long commands (e.g. `node-exporter`) get messed up and `$` in the . If you have 
 ### Forgotten Grafana password
 
 The Grafana admin password is set up only on first run. It can be resetted later vie the CLI `docker exec -ti <container id> grafana-cli admin reset-admin-password <new password>`.
-
-
