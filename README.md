@@ -96,3 +96,42 @@ See: [Deploy a Replica Set](https://docs.mongodb.com/manual/tutorial/deploy-repl
   ```
   
 ### Monitoring
+
+See: [eses/mongodb_exporter
+](https://hub.docker.com/r/eses/mongodb_exporter) and [](https://www.percona.com/doc/percona-monitoring-and-management/section.exporter.mongodb.html).
+
+- Create a user for the exporter.
+  ```
+  db.getSiblingDB("admin").createUser({
+      user: "mongodb_exporter",
+      pwd: "<password>",
+      roles: [
+          { role: "clusterMonitor", db: "admin" },
+          { role: "read", db: "local" }
+      ]
+  })
+  ```
+- Update the `swarmprom` stack:
+  - Add `mongodb-exporter` service: 
+    ```
+      mongodb-exporter:
+        image: eses/mongodb_exporter
+        secrets:
+         - mongoCA.crt
+        command: '-mongodb.tls -mongodb.uri mongodb://mongodb_exporter:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018 -mongodb.tls-ca /run/secrets/mongoCA.crt'
+        networks:
+         - net
+        deploy:
+          resources:
+            reservations:
+              memory: 64M
+            limits:
+              memory: 128M
+    ```
+  - Add `mongodb-exporter` job to `prometheus`:
+    ```
+          JOBS: traefik:8080 mongodb-exporter:9104
+    ```
+  - Add `mongoCA.crt` to `secrets`.
+- Import [MongoDB dashboard](https://grafana.com/grafana/dashboards/2583) to Grafana.
+- Edit dashboard JSON and change metric prefix from `mongodb_` to `mongodb_mongod_`.
