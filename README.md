@@ -68,7 +68,7 @@ See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://
 - Create a [webhook](https://api.slack.com/incoming-webhooks) in Slack.
 - Create the configs:
   - `dockerd_config` from [swarmprom Caddyfile](https://github.com/stefanprodan/swarmprom/blob/master/dockerd-exporter/Caddyfile).
-  - `node_rules` from [swarmprom swarm_node.rules.yml](https://github.com/stefanprodan/swarmprom/blob/master/prometheus/rules/swarm_node.rules.yml).
+  - `node_rules` from [swarm_node.rules.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarm_node.rules.yml).
   - `task_rules` from [swarmprom swarm_task.rules.yml](https://github.com/stefanprodan/swarmprom/blob/master/prometheus/rules/swarm_task.rules.yml).
 - Create stack `swarmprom` from [swarmprom.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmprom.yml). Because [swarmproms Dockerfile](https://github.com/stefanprodan/swarmprom/blob/master/grafana/Dockerfile) defines `GF_SECURITY_ADMIN_PASSWORD` it is not possible to use `GF_SECURITY_ADMIN_PASSWORD__FILE`.
 - Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
