@@ -153,3 +153,7 @@ Long commands (e.g. `node-exporter`) get messed up and `$` is unescaped in the "
 ### Forgotten Grafana password
 
 The Grafana admin password is set up only on first run. It can be resetted later vie the CLI `docker exec -ti <container id> grafana-cli admin reset-admin-password <new password>`.
+
+### "invalid memory address or nil pointer dereference" from mongodb_exporter
+
+There is a bug in the exporter ([PMM-4375](https://jira.percona.com/browse/PMM-4375)). We should update it as soon as the fix is released.
