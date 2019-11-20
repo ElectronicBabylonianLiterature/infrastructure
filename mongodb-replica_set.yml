@@ -23,6 +23,10 @@ services:
       placement:
         constraints:
          - node.hostname == lmkwitg-ebl01
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 4G
   mongo2:
     image: mongo:latest
     command: --replSet rs-ebl1 --sslMode requireSSL --sslPEMKeyFile /run/secrets/ebl02.pem --clusterAuthMode x509 --sslCAFile /run/secrets/mongoCA.crt --sslAllowConnectionsWithoutCertificates
@@ -45,6 +49,10 @@ services:
       placement:
         constraints:
          - node.hostname == lmkwitg-ebl02
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 4G
 volumes:
   db1:
     driver: local
