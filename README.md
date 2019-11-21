@@ -33,11 +33,11 @@ Each server needs to part of the Docker Swarm.
   docker run -it --rm \
     --name swarmpit-installer \
     --volume /var/run/docker.sock:/var/run/docker.sock \
-  swarmpit/install:1.7
+  swarmpit/install:1.8
   ```
   Swarmpit is now accessible at port 888.
 - Login to create a admin user.
-- Add placement to the `swarmpit_db` service so it will have the access to the original volume (currently on lmkwitg-ebl02).
+- Add placement to the `db` and `influxdb` services so it will have the access to the original volumes (both are currently on `lmkwitg-ebl02`).
 - The following steps can be performed via the swarm manager or command line as preferred.
 
 ### HTTPS and Monitoring
