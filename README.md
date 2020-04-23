@@ -137,6 +137,10 @@ See: [eses/mongodb_exporter
 - Import [MongoDB dashboard](https://grafana.com/grafana/dashboards/2583) to Grafana.
 - Edit dashboard JSON and change metric prefix from `mongodb_` to `mongodb_mongod_`.
 
+## eBL API
+
+Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml).
+
 ## Troubleshooting
 
 ### Consul fails to elect a leader
