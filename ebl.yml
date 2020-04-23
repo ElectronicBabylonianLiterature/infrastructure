@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+  api:
+    image: jlaasonen/ebl-api:master
+    command: 'pipenv run waitress-serve --port=8000 --threads=6 --call ebl.app:get_app'
+    environment:
+      AUTH0_AUDIENCE: dictionary-api
+      AUTH0_ISSUER: https://auth.ebabylon.org/
+      AUTH0_PEM: <Auth0 PEM>
+      MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&ssl=true&ssl_cert_reqs=CERT_NONE
+      SENTRY_DSN: <Sentry DSN>
+      SENTRY_ENVIRONMENT: production
+    networks:
+     - traefik-public
+    deploy:
+      replicas: 2
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        swarmpit.service.deployment.autoredeploy: 'true'
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8000'
+        traefik.frontend.rule: Host:api.ebabylon.org
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+networks:
+  traefik-public:
+    external: true
