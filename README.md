@@ -160,4 +160,4 @@ The Grafana admin password is set up only on first run. It can be resetted later
 
 ### "invalid memory address or nil pointer dereference" from mongodb_exporter
 
-There is a bug in the exporter ([PMM-4375](https://jira.percona.com/browse/PMM-4375)). We should update it as soon as the fix is released.
+There is a bug in the exporter ([PMM-4375](https://jira.percona.com/browse/PMM-4375)). We should update it as soon as the fix is released. The exporter has been updated.
