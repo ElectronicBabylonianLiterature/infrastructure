@@ -78,7 +78,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: <password>
       GF_SECURITY_ADMIN_USER: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
-      GF_SERVER_ROOT_URL: https://grafana.cluster.ebabylon.org
+      GF_SERVER_ROOT_URL: https://graphs.cluster.ebabylon.org
       GF_INSTALL_PLUGINS: grafana-piechart-panel
     volumes:
      - grafana:/var/lib/grafana
@@ -95,7 +95,7 @@ services:
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '3000'
-        traefik.frontend.rule: Host:grafana.cluster.ebabylon.org
+        traefik.frontend.rule: Host:graphs.cluster.ebabylon.org
       placement:
         constraints:
          - node.role == manager
