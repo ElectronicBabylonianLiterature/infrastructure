@@ -7,9 +7,15 @@ services:
       AUTH0_AUDIENCE: dictionary-api
       AUTH0_ISSUER: https://auth.ebabylon.org/
       AUTH0_PEM: <Auth0 PEM>
-      MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&ssl=true&ssl_cert_reqs=CERT_NONE
+      MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&ssl=true&ssl_ca_certs=/run/secrets/mongoCA.crt
       SENTRY_DSN: <Sentry DSN>
       SENTRY_ENVIRONMENT: production
+    secrets:
+     -
+      source: mongoCA.crt
+      uid: '999'
+      gid: '999'
+      mode: 0400
     networks:
      - traefik-public
     deploy:
@@ -30,4 +36,7 @@ services:
           memory: 2G
 networks:
   traefik-public:
+    external: true
+secrets:
+  mongoCA.crt:
     external: true
