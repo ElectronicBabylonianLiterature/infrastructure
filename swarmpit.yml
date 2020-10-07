@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   agent:
-    image: swarmpit/agent:2.2
+    image: swarmpit/agent:2.1
     environment:
       DOCKER_API_VERSION: '1.35'
     volumes:
