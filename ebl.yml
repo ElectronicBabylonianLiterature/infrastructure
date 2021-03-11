@@ -34,6 +34,24 @@ services:
         limits:
           cpus: '1.5'
           memory: 2G
+  frontend:
+    image: jlaasonen/ebl-frontend:master
+    networks:
+     - traefik-public
+    logging:
+      driver: json-file
+    deploy:
+      replicas: 2
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        swarmpit.service.deployment.autoredeploy: 'true'
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '5000'
+        traefik.frontend.rule: Host:www.ebabylon.org
 networks:
   traefik-public:
     external: true
