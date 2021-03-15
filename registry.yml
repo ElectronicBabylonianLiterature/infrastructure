@@ -1,0 +1,78 @@
+version: '3.7'
+services:
+  registry1:
+    image: registry:2
+    ports:
+     - 5000:5000
+    volumes:
+     - registry1:/var/lib/registry
+    networks:
+     - traefik-public
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /run/secrets/registry_htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: eBL Docker Registry Realm
+    secrets:
+     - registry_htpasswd
+    configs:
+     -
+      source: registry_config
+      target: /etc/docker/registry/config.yml
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == lmkwitg-ebl01
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '5000'
+        traefik.frontend.rule: Host:registry.cluster.ebabylon.org
+  ui:
+    image: quiq/docker-registry-ui
+    ports:
+     - 8000:8000
+    networks:
+     - traefik-public
+    volumes:
+     - registry-ui:/opt/data
+    secrets:
+     - docker-registry-ui_registry_password_file
+    configs:
+     -
+      source: docker-registry-ui_config
+      target: /opt/config.yml
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == lmkwitg-ebl02
+      labels:
+        traefik.tags: traefik-public
+        traefik.redirectorservice.frontend.redirect.entryPoint: https
+        traefik.webservice.frontend.entryPoints: https
+        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8000'
+        traefik.frontend.rule: Host:registry-ui.cluster.ebabylon.org
+volumes:
+  registry1:
+    driver: local
+  registry-ui:
+    driver: local
+secrets:
+  registry_htpasswd:
+    external: true
+  docker-registry-ui_registry_password_file:
+     external: true
+configs:
+  registry_config1:
+    external: true
+  docker-registry-ui_config:
+    external: true
+networks:
+  traefik-public:
+    external: true
