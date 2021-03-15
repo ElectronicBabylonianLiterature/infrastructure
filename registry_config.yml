@@ -1,0 +1,26 @@
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+  delete:
+    enabled: true
+http:
+  addr: :5000
+  headers:
+    X-Content-Type-Options: [nosniff]
+notifications:
+  endpoints:
+    - name: docker-registry-ui
+      url: http://ui:8000/api/events
+      headers:
+        Authorization: [Bearer <event listener token from ui config>]
+      timeout: 1s
+      threshold: 5
+      backoff: 10s
+      ignoredmediatypes:
+        - application/octet-stream
