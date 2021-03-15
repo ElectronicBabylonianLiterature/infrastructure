@@ -137,9 +137,20 @@ See: [eses/mongodb_exporter
 - Import [MongoDB dashboard](https://grafana.com/grafana/dashboards/2583) to Grafana.
 - Edit dashboard JSON and change metric prefix from `mongodb_` to `mongodb_mongod_`.
 
-## eBL API
+## Docker registry
 
-Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml).
+Create configs `registry_config` and `docker-registry-ui_config` from [registry_config.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/registry_config.yml) [docker-registry-ui_config](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/docker-registry-ui_config.yml). 
+
+Create secrets:
+
+* `httpass` bcrypt encrypted httpasswd file with users for the registry.
+* `registry_htpasswd` password of the regisry user used by the registry UI.
+
+Create stack from [registry.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/registry.yml).
+
+## eBL application
+
+Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml). The Docker images should be in the registry before deploying the stac.
 
 ## Troubleshooting
 
