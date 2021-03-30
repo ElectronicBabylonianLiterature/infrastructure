@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   mongo1:
-    image: mongo:latest
+    image: mongo:4.4.4
     environment:
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
       MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
@@ -17,7 +17,7 @@ services:
         constraints:
          - node.hostname == lmkwitg-ebl01
   mongo2:
-    image: mongo:latest
+    image: mongo:4.4.4
     environment:
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
       MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
