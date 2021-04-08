@@ -1,11 +1,11 @@
 version: '3.7'
 services:
   api:
-    image: registry.cluster.ebabylon.org/ebl-api:master
+    image: www.ebl.lmu.de/ebl-api:master
     command: 'pipenv run waitress-serve --port=8000 --threads=6 --call ebl.app:get_app'
     environment:
       AUTH0_AUDIENCE: dictionary-api
-      AUTH0_ISSUER: https://auth.ebabylon.org/
+      AUTH0_ISSUER: https://electronic-babylonian-literature.eu.auth0.com/
       AUTH0_PEM: <Auth0 PEM>
       MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&ssl=true&ssl_ca_certs=/run/secrets/mongoCA.crt
       SENTRY_DSN: <Sentry DSN>
@@ -21,21 +21,18 @@ services:
     deploy:
       replicas: 2
       labels:
-        traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         swarmpit.service.deployment.autoredeploy: 'true'
-        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.tags: traefik-public
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8000'
-        traefik.frontend.rule: Host:api.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/api/
       resources:
         limits:
           cpus: '1.5'
           memory: 2G
   frontend:
-    image: registry.cluster.ebabylon.org/ebl-frontend:master
+    image: www.ebl.lmu.de/ebl-frontend:master
     networks:
      - traefik-public
     logging:
@@ -43,15 +40,12 @@ services:
     deploy:
       replicas: 2
       labels:
-        traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         swarmpit.service.deployment.autoredeploy: 'true'
-        traefik.redirectorservice.frontend.entryPoints: http
+        traefik.tags: traefik-public
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '5000'
-        traefik.frontend.rule: Host:www.ebabylon.org
+        traefik.frontend.rule: PathPrefix:/
 networks:
   traefik-public:
     external: true
