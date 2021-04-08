@@ -16,14 +16,11 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8500'
-        traefik.frontend.rule: Host:consul.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefix:/cluster/consul/
       placement:
         constraints:
          - node.hostname == lmkwitg-ebl01
@@ -59,14 +56,11 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8080'
-        traefik.frontend.rule: Host:traefik.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/cluster/traefik/
       placement:
         constraints:
          - node.role == manager
