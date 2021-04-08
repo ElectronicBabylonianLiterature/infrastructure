@@ -24,13 +24,10 @@ services:
          - node.hostname == lmkwitg-ebl01
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '5000'
-        traefik.frontend.rule: Host:registry.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefix:/v2/
   ui:
     image: quiq/docker-registry-ui
     ports:
@@ -51,13 +48,10 @@ services:
          - node.hostname == lmkwitg-ebl02
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8000'
-        traefik.frontend.rule: Host:registry-ui.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefix:/cluster/registry-ui/
 volumes:
   registry1:
     driver: local
