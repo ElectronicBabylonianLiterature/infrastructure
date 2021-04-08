@@ -1,5 +1,6 @@
 constraints = ["tag==traefik-public"]
 logLevel = "INFO"
+defaultEntryPoints = ["http", "https"]
 
 
 [accessLog]
@@ -7,13 +8,15 @@ logLevel = "INFO"
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
   [entryPoints.https]
   address = ":443"
     [entryPoints.https.tls]
-    
-  
-[acme]
+    minVersion = "VersionTLS12"
+      
 
+[acme]
 email = "jussi.laasonen@lmu.de"
 storage = "traefik/acme/account"
 entryPoint = "https"
@@ -21,19 +24,21 @@ acmeLogging = true
 onHostRule = true
 
 [acme.httpChallenge]
-
 entryPoint = "http"
+
+[[acme.domains]]
+  main = "www.ebl.lmu.de"
+[[acme.domains]]
+  main = "www.ebl.uni-muenchen.de"
 
 
 [docker]
-
 watch = true
 swarmMode = true
 exposedByDefault = false
 
 
 [consul]
-
 endpoint = "consul-leader:8500"
 
 
