@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   agent:
-    image: swarmpit/agent:2.1
+    image: swarmpit/agent:2.2
     environment:
       DOCKER_API_VERSION: '1.35'
     volumes:
@@ -31,13 +31,10 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8080'
-        traefik.frontend.rule: Host:swarmpit.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/cluster/swarmpit/
       placement:
         constraints:
          - node.role == manager
