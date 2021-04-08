@@ -1,10 +1,10 @@
 # Listen interface.
 listen_addr: 0.0.0.0:8000
 # Base path of Docker Registry UI.
-base_path: /
+base_path: /cluster/registry-ui/
 
 # Registry URL with schema and port.
-registry_url: https://registry.cluster.ebabylon.org
+registry_url: https://www.ebabylon.org/cluster/registry/
 # Verify TLS certificate when using https.
 verify_tls: true
 
