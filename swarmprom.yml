@@ -20,14 +20,11 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '9093'
-        traefik.frontend.rule: Host:alertmanager.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/cluster/alertmanager/
       placement:
         constraints:
          - node.role == manager
@@ -78,7 +75,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: <password>
       GF_SECURITY_ADMIN_USER: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
-      GF_SERVER_ROOT_URL: https://graphs.cluster.ebabylon.org
+      GF_SERVER_ROOT_URL: https://www.ebl.lmu.de/cluster/grafana/
       GF_INSTALL_PLUGINS: grafana-piechart-panel
     volumes:
      - grafana:/var/lib/grafana
@@ -89,13 +86,10 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '3000'
-        traefik.frontend.rule: Host:graphs.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/cluster/grafana/
       placement:
         constraints:
          - node.role == manager
@@ -135,7 +129,8 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention=7d'
-      - '--web.external-url https://prometheus.cluster.ebabylon.org'
+      - '--web.external-url /cluster/prometheus/'
+      - '--web.route-prefix /'
     environment:
       JOBS: traefik:8080
     secrets:
@@ -158,14 +153,11 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '9090'
-        traefik.frontend.rule: Host:prometheus.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/cluster/prometheus/
       placement:
         constraints:
          - node.role == manager
@@ -188,14 +180,11 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.redirectorservice.frontend.redirect.entryPoint: https
-        traefik.webservice.frontend.entryPoints: https
         traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
-        traefik.redirectorservice.frontend.entryPoints: http
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8080'
-        traefik.frontend.rule: Host:unsee.cluster.ebabylon.org
+        traefik.frontend.rule: PathPrefixStrip:/cluster/unsee/
 networks:
   net:
     driver: overlay
