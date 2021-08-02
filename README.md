@@ -172,3 +172,8 @@ The Grafana admin password is set up only on first run. It can be resetted later
 ### "invalid memory address or nil pointer dereference" from mongodb_exporter
 
 There is a bug in the exporter ([PMM-4375](https://jira.percona.com/browse/PMM-4375)). We should update it as soon as the fix is released. The exporter has been updated.
+
+### The cluster becomes unresponsive
+
+Docker can be restarted from the commandline by running `sudo service docker restart` in all the affected instances. If it is not possible to connect with SSH, ask ITG to reboot/investigate.
+
