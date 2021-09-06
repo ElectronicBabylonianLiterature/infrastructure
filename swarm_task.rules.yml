@@ -22,9 +22,9 @@ groups:
         $value}}.'
       summary: Memory alert for Swarm task '{{ $labels.container_label_com_docker_swarm_task_name
         }}' on '{{ $labels.container_label_com_docker_swarm_node_id }}'
-  - alert: task_high_api.memory_usage_1.8g
+  - alert: task_high_api.memory_usage_9.8g
     expr: sum(container_memory_rss{container_label_com_docker_swarm_task_name=~"ebl_api.+"})
-      BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 1.8e+09
+      BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 9.8e+09
     for: 1m
     annotations:
       description: '{{ $labels.container_label_com_docker_swarm_task_name }} on ''{{
@@ -32,9 +32,9 @@ groups:
         $value}}.'
       summary: Memory alert for Swarm task '{{ $labels.container_label_com_docker_swarm_task_name
         }}' on '{{ $labels.container_label_com_docker_swarm_node_id }}'
-  - alert: task_high_mongo_memory_usage_3.5g
+  - alert: task_high_mongo_memory_usage_3.8g
     expr: sum(container_memory_rss{container_label_com_docker_swarm_task_name=~"ebl-mongodb.+"})
-      BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 3.5e+09
+      BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 3.8e+09
     for: 1m
     annotations:
       description: '{{ $labels.container_label_com_docker_swarm_task_name }} on ''{{
