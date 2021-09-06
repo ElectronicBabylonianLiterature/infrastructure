@@ -30,7 +30,7 @@ services:
       resources:
         limits:
           cpus: '1.5'
-          memory: 2G
+          memory: 10G
   frontend:
     image: www.ebl.lmu.de/ebl-frontend:master
     networks:
