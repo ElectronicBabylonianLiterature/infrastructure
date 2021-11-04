@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   consul-leader:
-    image: consul:latest
+    image: consul:1.10
     command: agent -server -client=0.0.0.0 -bootstrap-expect=1 -ui
     environment:
       CONSUL_BIND_INTERFACE: eth0
@@ -25,7 +25,7 @@ services:
         constraints:
          - node.hostname == lmkwitg-ebl01
   consul-replica:
-    image: consul:latest
+    image: consul:1.10
     command: agent -server -client=0.0.0.0 -retry-join=consul-leader
     environment:
       CONSUL_BIND_INTERFACE: eth0
