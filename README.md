@@ -151,8 +151,8 @@ Create stack from [registry.yml](https://github.com/ElectronicBabylonianLiteratu
 ## eBL application
 
 Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml). The Docker images should be in the registry before deploying the stack.
-[Ai-api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) service is optional and could be left out. The EBL_AI_API environment variable on the [api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) has to be present.
-The Ebl-ai-api repository is [here](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api)
+[Ai-api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) service is optional and could be left out. The **EBL_AI_API** environment variable on the [api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) has to be present.
+The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api)
 
 ## Troubleshooting
 
