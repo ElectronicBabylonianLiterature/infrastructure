@@ -1,5 +1,18 @@
 version: '3.7'
 services:
+  ai-api:
+    image: www.ebl.lmu.de/ebl-ai-api:main
+    networks:
+     - ai-api
+    logging:
+      driver: json-file
+    deploy:
+      labels:
+        swarmpit.service.deployment.autoredeploy: 'true'
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2048M
   api:
     image: www.ebl.lmu.de/ebl-api:master
     command: 'pipenv run waitress-serve --port=8000 --threads=6 --call ebl.app:get_app'
@@ -10,6 +23,7 @@ services:
       MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&ssl=true&ssl_ca_certs=/run/secrets/mongoCA.crt
       SENTRY_DSN: <Sentry DSN>
       SENTRY_ENVIRONMENT: production
+      EBL_AI_API: http://ai-api:8001
     secrets:
      -
       source: mongoCA.crt
@@ -17,6 +31,7 @@ services:
       gid: '999'
       mode: 0400
     networks:
+     - ai-api
      - traefik-public
     deploy:
       replicas: 2
@@ -47,6 +62,8 @@ services:
         traefik.port: '5000'
         traefik.frontend.rule: PathPrefix:/
 networks:
+  ai-api:
+    driver: overlay
   traefik-public:
     external: true
 secrets:
