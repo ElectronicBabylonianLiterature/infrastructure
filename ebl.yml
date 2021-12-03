@@ -20,7 +20,7 @@ services:
       AUTH0_AUDIENCE: dictionary-api
       AUTH0_ISSUER: https://electronic-babylonian-literature.eu.auth0.com/
       AUTH0_PEM: <Auth0 PEM>
-      MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&ssl=true&ssl_ca_certs=/run/secrets/mongoCA.crt
+      MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&tls=true&tlsCAFile=/run/secrets/mongoCA.crt
       SENTRY_DSN: <Sentry DSN>
       SENTRY_ENVIRONMENT: production
       EBL_AI_API: http://ai-api:8001
