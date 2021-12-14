@@ -23,6 +23,7 @@ Each server needs to part of the Docker Swarm.
     ```
 - On the first VM, [create a new swarm](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/)
 - On the other VMs, join the swarm. (See the output from creating the swarm or run `docker swarm join-token worker` on the manager.)
+- On all VMs add pruning old Docker images to crontab: `0 4 * * * docker image prune -f --filter "until=24h"`.
 
 ## Docker Swarm Setup
 
@@ -179,3 +180,6 @@ There is a bug in the exporter ([PMM-4375](https://jira.percona.com/browse/PMM-4
 
 Docker can be restarted from the commandline by running `sudo service docker restart` in all the affected instances. If it is not possible to connect with SSH, ask ITG to reboot/investigate.
 
+### Low diskspace
+
+Diskspace can be freed by removing old Docker images etc. See: https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127
