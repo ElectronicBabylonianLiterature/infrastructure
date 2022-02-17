@@ -156,6 +156,22 @@ Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/in
 [Ai-api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) service is optional and could be left out. The **EBL_AI_API** environment variable on the [api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) has to be present.
 The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api).
 
+- Update the `swarmprom` stack:
+  - Add `redis-exporter` service: 
+    ```
+    redis-exporter:
+      image: bitnami/redis-exporter:1
+      environment:
+        REDIS_ADDR: redis://redis:6379
+      networks:
+       - net
+       - monitoring
+    ```
+  - Add `redis-exporter` job to `prometheus`:
+    ```
+          JOBS: traefik:8080 mongodb-exporter:9216 redis-exporter:9121
+    ```
+
 ## Troubleshooting
 
 ### Consul fails to elect a leader
