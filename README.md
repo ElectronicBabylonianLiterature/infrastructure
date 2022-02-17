@@ -67,6 +67,7 @@ Setup Swarpit to use Traefik. See: [Swarmpit web user interface for your Docker 
 See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://dockerswarm.rocks/swarmprom/).
 
 - Create a [webhook](https://api.slack.com/incoming-webhooks) in Slack.
+- Create netwrok `docker network create --driver=overlay monitoring`.
 - Create the configs:
   - `dockerd_config` from [swarmprom Caddyfile](https://github.com/stefanprodan/swarmprom/blob/master/dockerd-exporter/Caddyfile).
   - `node_rules` from [swarm_node.rules.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarm_node.rules.yml).
