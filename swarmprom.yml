@@ -191,6 +191,8 @@ networks:
     attachable: true
   traefik-public:
     external: true
+  monitoring:
+    external: true
 volumes:
   alertmanager:
     driver: local
