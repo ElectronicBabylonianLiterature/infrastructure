@@ -3,7 +3,7 @@ services:
   ai-api:
     image: www.ebl.lmu.de/ebl-ai-api:main
     networks:
-     - ai-api
+     - ebl-api
     logging:
       driver: json-file
     deploy:
@@ -20,6 +20,7 @@ services:
       AUTH0_AUDIENCE: dictionary-api
       AUTH0_ISSUER: https://electronic-babylonian-literature.eu.auth0.com/
       AUTH0_PEM: <Auth0 PEM>
+      CACHE_CONFIG: '{"CACHE_TYPE": "redis", "CACHE_REDIS_HOST": "redis"}'
       MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&tls=true&tlsCAFile=/run/secrets/mongoCA.crt
       SENTRY_DSN: <Sentry DSN>
       SENTRY_ENVIRONMENT: production
@@ -31,7 +32,7 @@ services:
       gid: '999'
       mode: 0400
     networks:
-     - ai-api
+     - ebl-api
      - traefik-public
     deploy:
       replicas: 2
@@ -61,8 +62,32 @@ services:
         traefik.enable: 'true'
         traefik.port: '5000'
         traefik.frontend.rule: PathPrefix:/
+  redis:
+    image: redis:6-alpine
+    command:
+     - redis-server
+     - --save
+     - ''
+     - --maxmemory
+     - 900M
+     - --maxmemory-policy
+     - volatile-ttl
+     - --loglevel
+     - notice
+     - --logfile
+     - ''
+    networks:
+     - ebl-api
+     - monitoring
+    logging:
+      driver: json-file
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
 networks:
-  ai-api:
+  ebl-api:
     driver: overlay
   traefik-public:
     external: true
