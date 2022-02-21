@@ -118,10 +118,12 @@ See: [eses/mongodb_exporter
   - Add `mongodb-exporter` service: 
     ```
       mongodb-exporter:
-        image: eses/mongodb_exporter
+        image: bitnami/mongodb-exporter
+        command:
+         - --mongodb.direct-connect=false
+         - --mongodb.uri=mongodb://<user>:<passwordd>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/?tls=true&tlsCAFile=/run/secrets/mongoCA.crt
         secrets:
          - mongoCA.crt
-        command: '-mongodb.tls -mongodb.uri mongodb://mongodb_exporter:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018 -mongodb.tls-ca /run/secrets/mongoCA.crt'
         networks:
          - net
         deploy:
