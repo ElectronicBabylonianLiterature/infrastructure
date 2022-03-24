@@ -49,6 +49,7 @@ services:
       labels:
         traefik.tags: traefik-public
         traefik.docker.network: traefik-public
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.enable: 'true'
         traefik.port: '8000'
         traefik.frontend.rule: PathPrefix:/cluster/registry-ui/
@@ -66,6 +67,8 @@ configs:
   registry_config1:
     external: true
   docker-registry-ui_config:
+    external: true
+  basic_auth_users:
     external: true
 networks:
   traefik-public:
