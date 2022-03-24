@@ -38,6 +38,7 @@ services:
      - registry-ui:/opt/data
     secrets:
      - docker-registry-ui_registry_password_file
+     - basic_auth_users
     configs:
      -
       source: docker-registry-ui_config
