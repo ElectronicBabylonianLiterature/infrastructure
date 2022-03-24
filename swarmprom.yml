@@ -10,7 +10,7 @@ services:
       SLACK_URL: https://hooks.slack.com/services/<token>
       SLACK_USER: alertmanager
     secrets:
-     - basic_auth_users_v2
+     - basic_auth_users
     volumes:
      - alertmanager:/alertmanager
     networks:
@@ -20,7 +20,7 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '9093'
@@ -153,7 +153,7 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '9090'
@@ -172,7 +172,7 @@ services:
     environment:
       ALERTMANAGER_URIS: default:http://alertmanager:9093
     secrets:
-    - basic_auth_users_v2
+    - basic_auth_users
     networks:
      - default
      - net
@@ -180,7 +180,7 @@ services:
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8080'
@@ -208,5 +208,5 @@ configs:
   task_rules:
     external: true
 secrets:
-  basic_auth_users_v2:
+  basic_auth_users:
     external: true
