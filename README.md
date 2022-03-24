@@ -51,8 +51,8 @@ See: [Traefik Proxy with HTTPS](https://dockerswarm.rocks/traefik/)
 
 - Setup the DNS to send `*.cluster.ebabylon.org` to the swarm.
 - Create a network `docker network create --driver=overlay traefik-public`.
-- Create a config `traefik-config-v2` from [traefik.toml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/traefik.toml).
-- Create a secret `basic_auth_users_v2` containing the basic auth users. A hashed password can be created with `openssl passwd -apr1 <password>`
+- Create a config `traefik-config` from [traefik.toml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/traefik.toml).
+- Create a secret `basic_auth_users` containing the basic auth users. A hashed password can be created with `openssl passwd -apr1 <password>`
 - Create stack `traefik-consul` from [traefik-consul.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/tree/master)
 
 #### Swarmpit
