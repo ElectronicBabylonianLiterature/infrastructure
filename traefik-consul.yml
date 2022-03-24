@@ -12,11 +12,11 @@ services:
      - default
      - traefik-public
     secrets:
-     - basic_auth_users_v2
+     - basic_auth_users
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8500'
@@ -48,15 +48,15 @@ services:
      - default
      - traefik-public
     secrets:
-     - basic_auth_users_v2
+     - basic_auth_users
     configs:
      -
-      source: traefik-config-v2
+      source: traefik-config
       target: /etc/traefik/traefik.toml
     deploy:
       labels:
         traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users_v2
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
         traefik.port: '8080'
@@ -75,8 +75,8 @@ volumes:
   consul-data-replica:
     driver: local
 configs:
-  traefik-config-v2:
+  traefik-config:
     external: true
 secrets:
-  basic_auth_users_v2:
+  basic_auth_users:
     external: true
