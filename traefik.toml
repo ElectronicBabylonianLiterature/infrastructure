@@ -8,10 +8,12 @@ defaultEntryPoints = ["http", "https"]
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+  compress = true
     [entryPoints.http.redirect]
     entryPoint = "https"
   [entryPoints.https]
   address = ":443"
+  compress = true
     [entryPoints.https.tls]
     minVersion = "VersionTLS12"
       
