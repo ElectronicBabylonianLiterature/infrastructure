@@ -25,7 +25,6 @@ services:
       SENTRY_DSN: <Sentry DSN>
       SENTRY_ENVIRONMENT: production
       EBL_AI_API: http://ai-api:8001
-      CORRECTIONS_EMAIL: ebl-support+corrections@culture.lmu.de
     secrets:
      -
       source: mongoCA.crt
