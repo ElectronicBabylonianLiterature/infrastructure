@@ -75,6 +75,9 @@ See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://
 - Create stack `swarmprom` from [swarmprom.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/swarmprom.yml). Because [swarmproms Dockerfile](https://github.com/stefanprodan/swarmprom/blob/master/grafana/Dockerfile) defines `GF_SECURITY_ADMIN_PASSWORD` it is not possible to use `GF_SECURITY_ADMIN_PASSWORD__FILE`.
 - Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
+## Frontend Environment
+- Define frontend environment variables directly in [`main.yml`](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml). Put sensetive values to secrets.
+
 ## MongoDB
 
 - Create secrets `mongo_admin_user` and `mongo_admin_password` which will be used to create the admin user on the first deploy.
