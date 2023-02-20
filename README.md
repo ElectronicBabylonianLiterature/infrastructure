@@ -76,7 +76,7 @@ See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://
 - Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
 ## Frontend Environment
-- Define frontend environment variables directly in [`main.yml`](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml). Put sensitive values to secrets.
+- Define frontend environment variables directly in [`main.yml`](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml). [Put](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/settings/secrets/actions) sensitive values to secrets.
 
 ## MongoDB
 
