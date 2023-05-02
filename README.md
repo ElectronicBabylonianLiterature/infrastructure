@@ -205,3 +205,10 @@ Docker can be restarted from the commandline by running `sudo service docker res
 ### Low diskspace
 
 Diskspace can be freed by removing old Docker images etc. See: https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127
+
+### Expired certificate
+
+The certificates are handled automatically by [Let's Encrypt](https://letsencrypt.org/) and `certbot` (managed in the Traefik configuration, cf.
+the [Traefik docs](https://doc.traefik.io/traefik/v1.7/configuration/acme/)).
+In case if fails the website becomes unavailable via https once the certificate expires. It might be necessary to manually restart the 
+`traefik-consul_traefik` service in swarmpit or via the server.
