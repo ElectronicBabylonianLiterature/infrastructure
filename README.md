@@ -4,7 +4,7 @@ The Electronic Babylonian Library platform is hosted on two VMs on Docker Swarm 
 
 ## Backup copies
 
-6 daily backup images of the servers are made, at 02:20, 06:20, 10:20, 14:20, 18:20 and 22:20 hrs. The images are kept for 14 days. The images can be restored by the LRZ on short notice by opening a ticket on their [Service Desk](https://servicedesk.lrz.de/). If it is necessary to restore an, the images of all nodes of the Replica Set should be restored, not just one of the nodes, as otherwise they will be out of sync.
+6 daily backup images of the servers are made, at 02:20, 06:20, 10:20, 14:20, 18:20 and 22:20 hrs. The images are kept for 14 days. The images can be restored by the LRZ on short notice by opening a ticket on their [Service Desk](https://servicedesk.lrz.de/). If it is necessary to restore a backup copy, the images of all nodes of the Replica Set should be restored, not just one of the nodes, as otherwise they will be out of sync.
 
 ## LRZ Server Setup
 
