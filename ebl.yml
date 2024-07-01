@@ -15,7 +15,7 @@ services:
           memory: 2048M
   api:
     image: www.ebl.lmu.de/ebl-api:master
-    command: 'pipenv run waitress-serve --port=8000 --threads=6 --call ebl.app:get_app'
+    command: 'poetry run waitress-serve --port=8000 --threads=6 --call ebl.app:get_app'
     environment:
       AUTH0_AUDIENCE: dictionary-api
       AUTH0_ISSUER: https://electronic-babylonian-literature.eu.auth0.com/
