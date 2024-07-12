@@ -1,0 +1,52 @@
+cloud-architecture-diagram
+
+title Electronic Babylonian Library Infrastructure
+
+eBL App [icon: app]
+
+Deployment {
+  Frontend {
+    React [icon: react]
+    TypeScript [icon: typescript]
+    Auth0 [icon: auth0]
+    Bootstrap [icon: bootstrap]
+  }
+
+  Api {
+    Python [icon: python]
+    Waitress [icon: server]
+    MongoDB [icon: mongodb]
+  }
+
+
+
+  Docker [icon: docker]
+  Registry [icon: database]
+  LRZ [icon: datacenter]
+}
+
+Development {
+  GitHub [icon: github]
+  CI [icon: github-actions]
+  Gitpod [icon: vs-code]
+  CodeClimate [icon: check-square]
+  Sourcery-ai [icon: ai]
+  Jest [icon: jest]
+}
+
+Monitoring {
+  Grafana [icon: grafana]
+  Consul [icon: consul]
+  Swarmpit [icon: settings]
+  Prometheus [icon: prometheus]
+  Sentry [icon: sentry]
+}
+
+Frontend <--> Api
+
+Development --> Registry
+Registry --> Api
+Registry --> Frontend
+
+Deployment <--> Monitoring
+
