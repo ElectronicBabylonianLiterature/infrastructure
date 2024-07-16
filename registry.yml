@@ -21,7 +21,7 @@ services:
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl01
+         - node.hostname == badwcai-ebl01
       labels:
         traefik.tags: traefik-public
         traefik.docker.network: traefik-public
@@ -37,7 +37,7 @@ services:
     volumes:
      - registry-ui:/opt/data
     secrets:
-     - docker-registry-ui_registry_password_file
+     - docker-registry-ui_admin_password
      - basic_auth_users
     configs:
      -
@@ -46,7 +46,7 @@ services:
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl02
+         - node.hostname == badwcai-ebl02
       labels:
         traefik.tags: traefik-public
         traefik.docker.network: traefik-public
@@ -62,14 +62,14 @@ volumes:
 secrets:
   registry_htpasswd:
     external: true
-  docker-registry-ui_registry_password_file:
-     external: true
-configs:
-  registry_config1:
-    external: true
-  docker-registry-ui_config:
+  docker-registry-ui_admin_password:
     external: true
   basic_auth_users:
+    external: true
+configs:
+  docker-registry-ui_config:
+    external: true
+  registry_config:
     external: true
 networks:
   traefik-public:
