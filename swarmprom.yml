@@ -1,22 +1,23 @@
 version: '3.3'
 services:
   alertmanager:
-    image: stefanprodan/swarmprom-alertmanager:v0.14.0
+    image: stefanprodan/swarmprom-alertmanager:v0.15.3
     command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
     environment:
       SLACK_CHANNEL: cluster_alerts
-      SLACK_URL: https://hooks.slack.com/services/<token>
+      SLACK_URL: https://hooks.slack.com/services/<slack_token>
       SLACK_USER: alertmanager
     secrets:
      - basic_auth_users
     volumes:
      - alertmanager:/alertmanager
     networks:
-     - default
      - net
      - traefik-public
+    logging:
+      driver: json-file
     deploy:
       labels:
         traefik.tags: traefik-public
@@ -28,15 +29,17 @@ services:
       placement:
         constraints:
          - node.role == manager
-         - node.hostname == lmkwitg-ebl01
+         - node.hostname == badwcai-ebl01
       resources:
         reservations:
           memory: 64M
         limits:
           memory: 128M
   cadvisor:
-    image: google/cadvisor:latest
-    command: -logtostderr -docker_only
+    image:  gcr.io/cadvisor/cadvisor
+    command:
+     - -logtostderr
+     - -docker_only
     volumes:
      - /var/run/docker.sock:/var/run/docker.sock:ro
      - /:/rootfs:ro
@@ -45,6 +48,8 @@ services:
      - /var/lib/docker/:/var/lib/docker:ro
     networks:
      - net
+    logging:
+      driver: json-file
     deploy:
       mode: global
       resources:
@@ -62,6 +67,8 @@ services:
      -
       source: dockerd_config
       target: /etc/caddy/Caddyfile
+    logging:
+      driver: json-file
     deploy:
       mode: global
       resources:
@@ -69,20 +76,29 @@ services:
           memory: 64M
         limits:
           memory: 128M
+  redis-exporter:
+    image: bitnami/redis-exporter:1
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    networks:
+     - net
+     - monitoring
   grafana:
     image: stefanprodan/swarmprom-grafana:5.3.4
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: <password>
+      GF_SECURITY_ADMIN_PASSWORD: 2Dy4uy1GeOOM
       GF_SECURITY_ADMIN_USER: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
-      GF_SERVER_ROOT_URL: https://www.ebl.lmu.de/cluster/grafana/
+      GF_SERVER_ROOT_URL: https://ebl.badw.de/cluster/grafana/
       GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_SERVE_FROM_SUB_PATH: 'true'
     volumes:
      - grafana:/var/lib/grafana
     networks:
-     - default
      - net
      - traefik-public
+    logging:
+      driver: json-file
     deploy:
       labels:
         traefik.tags: traefik-public
@@ -93,7 +109,45 @@ services:
       placement:
         constraints:
          - node.role == manager
-         - node.hostname == lmkwitg-ebl01
+         - node.hostname == badwcai-ebl01
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+  karma:
+    image: ghcr.io/prymitive/karma:latest
+    environment:
+      ALERTMANAGER_URI: http://alertmanager:9093
+      PREFIX: /cluster/karma/
+    networks:
+     - net
+     - traefik-public
+    secrets:
+     - basic_auth_users
+    logging:
+      driver: json-file
+    deploy:
+      labels:
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
+        traefik.frontend.rule: Host:ebl.badw.de;PathPrefixStrip:/cluster/karma/
+        traefik.port: '8080'
+        traefik.tags: traefik-public
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.37.0
+    command:
+     - --mongodb.direct-connect=false
+     - --mongodb.uri=mongodb://mongodb_exporter:<top_secret_password>@badwcai-ebl01.srv.mwn.de:27017,badwcai-ebl02.srv.mwn.de:27018,badwcai-ebl03.srv.mwn.de:27019/admin?tls=true&tlsCAFile=/run/secrets/mongoCA.crt&tlsInsecure=true
+     - --collect-all
+    networks:
+     - net
+    secrets:
+     - mongoCA.crt
+    logging:
+      driver: json-file
+    deploy:
       resources:
         reservations:
           memory: 64M
@@ -102,11 +156,11 @@ services:
   node-exporter:
     image: stefanprodan/swarmprom-node-exporter:v0.16.0
     command:
-      - '--path.sysfs=/host/sys'
-      - '--path.procfs=/host/proc'
-      - '--collector.textfile.directory=/etc/node-exporter/'
-      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
-      - '--no-collector.ipvs'
+      - --path.sysfs=/host/sys
+      - --path.procfs=/host/proc
+      - --collector.textfile.directory=/etc/node-exporter/
+      - --collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)
+      - --no-collector.ipvs
     environment:
       NODE_ID: '{{.Node.ID}}'
     volumes:
@@ -116,6 +170,8 @@ services:
      - /etc/hostname:/etc/nodename
     networks:
      - net
+    logging:
+      driver: json-file
     deploy:
       mode: global
       resources:
@@ -126,19 +182,18 @@ services:
   prometheus:
     image: stefanprodan/swarmprom-prometheus:v2.5.0
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention=7d'
-      - '--web.external-url /cluster/prometheus/'
-      - '--web.route-prefix /'
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=7d
+      - --web.external-url=/cluster/prometheus/
+      - --web.route-prefix=/
     environment:
-      JOBS: traefik:8080
+      JOBS: traefik:8080 mongodb-exporter:9104 redis-exporter:9121
     secrets:
-     - basic_auth_users_v2
+     - basic_auth_users
     volumes:
      - prometheus:/prometheus
     networks:
-     - default
      - net
      - traefik-public
     configs:
@@ -161,12 +216,21 @@ services:
       placement:
         constraints:
          - node.role == manager
-         - node.hostname == lmkwitg-ebl01
+         - node.hostname == badwcai-ebl01
       resources:
         reservations:
           memory: 128M
         limits:
           memory: 2048M
+  redis-exporter:
+    image: bitnami/redis-exporter:1
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    networks:
+     - monitoring
+     - net
+    logging:
+      driver: json-file
   unsee:
     image: cloudflare/unsee:v0.8.0
     environment:
@@ -174,9 +238,10 @@ services:
     secrets:
     - basic_auth_users
     networks:
-     - default
      - net
      - traefik-public
+    logging:
+      driver: json-file
     deploy:
       labels:
         traefik.tags: traefik-public
@@ -188,7 +253,6 @@ services:
 networks:
   net:
     driver: overlay
-    attachable: true
   traefik-public:
     external: true
   monitoring:
@@ -209,4 +273,6 @@ configs:
     external: true
 secrets:
   basic_auth_users:
+    external: true
+  mongoCA.crt:
     external: true
