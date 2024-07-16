@@ -1,62 +1,107 @@
-version: '3.7'
+version: '3.3'
 services:
   mongo1:
-    image: mongo:latest
-    command: --replSet rs-ebl1 --sslMode requireSSL --sslPEMKeyFile /run/secrets/ebl01.pem --clusterAuthMode x509 --sslCAFile /run/secrets/mongoCA.crt --sslAllowConnectionsWithoutCertificates
+    image: mongo:7.0
+    command:
+     - --replSet
+     - rs-ebl
+     - --tlsMode
+     - requireTLS
+     - --tlsCertificateKeyFile
+     - /run/secrets/ebl01.pem
+     - --clusterAuthMode
+     - x509
+     - --sslCAFile
+     - /run/secrets/mongoCA.crt
+     - --tlsAllowConnectionsWithoutCertificates
+     - --wiredTigerCacheSizeGB=4
     ports:
      - 27017:27017
     volumes:
      - db1:/data/db
     secrets:
-    secrets:
-     -
-      source: mongoCA.crt
-      uid: '999'
-      gid: '999'
-      mode: 0400
-     -
-      source: ebl01.pem
-      uid: '999'
-      gid: '999'
-      mode: 0400
+     - ebl01.pem
+     - mongoCA.crt
+    logging:
+      driver: json-file
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl01
+         - node.hostname == badwcai-ebl01
       resources:
         limits:
-          cpus: '1.5'
-          memory: 4G
+          cpus: '2.0'
+          memory: 12G
   mongo2:
-    image: mongo:latest
-    command: --replSet rs-ebl1 --sslMode requireSSL --sslPEMKeyFile /run/secrets/ebl02.pem --clusterAuthMode x509 --sslCAFile /run/secrets/mongoCA.crt --sslAllowConnectionsWithoutCertificates
+    image: mongo:7.0
+    command:
+     - --replSet
+     - rs-ebl
+     - --tlsMode
+     - requireTLS
+     - --tlsCertificateKeyFile
+     - /run/secrets/ebl02.pem
+     - --clusterAuthMode
+     - x509
+     - --sslCAFile
+     - /run/secrets/mongoCA.crt
+     - --tlsAllowConnectionsWithoutCertificates
+     - --wiredTigerCacheSizeGB=4
     ports:
      - 27018:27017
     volumes:
      - db2:/data/db
     secrets:
-     -
-      source: mongoCA.crt
-      uid: '999'
-      gid: '999'
-      mode: 0400
-     -
-      source: ebl02.pem
-      uid: '999'
-      gid: '999'
-      mode: 0400
+     - ebl02.pem
+     - mongoCA.crt
+    logging:
+      driver: json-file
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl02
+         - node.hostname == badwcai-ebl02
       resources:
         limits:
-          cpus: '1.5'
-          memory: 4G
+          cpus: '2.0'
+          memory: 12G
+  mongo3:
+    image: mongo:7.0
+    command:
+     - --replSet
+     - rs-ebl
+     - --tlsMode
+     - requireTLS
+     - --tlsCertificateKeyFile
+     - /run/secrets/ebl03.pem
+     - --clusterAuthMode
+     - x509
+     - --sslCAFile
+     - /run/secrets/mongoCA.crt
+     - --tlsAllowConnectionsWithoutCertificates
+     - --wiredTigerCacheSizeGB=4
+    ports:
+     - 27019:27017
+    volumes:
+     - db3:/data/db
+    secrets:
+     - ebl03.pem
+     - mongoCA.crt
+    logging:
+      driver: json-file
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == badwcai-ebl03
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 12G
 volumes:
   db1:
     driver: local
   db2:
+    driver: local
+  db3:
     driver: local
 secrets:
   mongoCA.crt:
@@ -64,4 +109,6 @@ secrets:
   ebl01.pem:
     external: true
   ebl02.pem:
+    external: true
+  ebl03.pem:
     external: true

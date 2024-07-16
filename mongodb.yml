@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   mongo1:
-    image: mongo:4.4.4
+    image: mongo:7.0
     environment:
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
       MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
@@ -15,9 +15,9 @@ services:
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl01
+         - node.hostname == badwcai-ebl01
   mongo2:
-    image: mongo:4.4.4
+    image: mongo:7.0
     environment:
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
       MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
@@ -31,11 +31,29 @@ services:
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl02
+         - node.hostname == badwcai-ebl02
+  mongo3:
+    image: mongo:7.0
+    environment:
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_admin_password
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_admin_user
+    ports:
+     - 27019:27017
+    volumes:
+     - db3:/data/db
+    secrets:
+     - mongo_admin_user
+     - mongo_admin_password
+    deploy:
+      placement:
+        constraints:
+         - node.hostname == badwcai-ebl03
 volumes:
   db1:
     driver: local
   db2:
+    driver: local
+  db3:
     driver: local
 secrets:
   mongo_admin_user:
