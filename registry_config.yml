@@ -18,7 +18,7 @@ notifications:
     - name: docker-registry-ui
       url: https://ebl.badw.de/cluster/registry-ui/api/events
       headers:
-        Authorization: [Bearer <token>]
+        Authorization: [Bearer <same token as in docker-registry-ui_config.yml>]
       timeout: 1s
       threshold: 5
       backoff: 10s
