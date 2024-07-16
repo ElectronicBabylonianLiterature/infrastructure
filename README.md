@@ -17,14 +17,18 @@ Each server needs to part of the Docker Swarm.
   - Configure Docker to start on boot. Check status `sudo service docker status`
 - Configure the firewall. (Published ports are opened automatically by Docker with iptables and not appear in ufw rules.)
   - Allow connections from all other nodes:
-    ```
+
+    ```sh
     sudo ufw allow proto tcp from <node IP> to any port 2377,7946 comment 'Docker Swarm'
     sudo ufw allow proto udp from <node IP> to any port 7946,4789 comment 'Docker Swarm'
     ```
+
   - Allow metrics:
-    ```
+
+    ```sh
     sudo ufw allow from 172.18.0.0/16 to any port 9323 comment 'Docker Metrics'
     ```
+
 - On the first VM, [create a new swarm](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/)
 - On the other VMs, join the swarm. (See the output from creating the swarm or run `docker swarm join-token worker` on the manager.)
 - On all VMs add pruning old Docker images to crontab: `0 4 * * * docker image prune -f --filter "until=24h"`.
@@ -34,12 +38,14 @@ Each server needs to part of the Docker Swarm.
 ### Swarm Manager
 
 - On a manager node install [Swarmpit](https://swarmpit.io) with default options:
-  ```
+
+  ```sh
   docker run -it --rm \
     --name swarmpit-installer \
     --volume /var/run/docker.sock:/var/run/docker.sock \
   swarmpit/install:1.8
   ```
+
   Swarmpit is now accessible at port 888.
 - Login to create a admin user.
 - Add placement to the `db` and `influxdb` services so it will have the access to the original volumes (both are currently on `lmkwitg-ebl02`).
@@ -80,12 +86,13 @@ See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://
 - Import [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
 ## Frontend Environment
+
 - Define frontend environment variables directly in [`main.yml`](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml). [Put](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/settings/secrets/actions) sensitive values to secrets.
 
 ## MongoDB
 
 - Create secrets `mongo_admin_user` and `mongo_admin_password` which will be used to create the admin user on the first deploy.
-- Create stack `ebl-mongodb` from [mongodb.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb.yml). Initdb functionality does not work well with SSL, so we enable it in the next step. See: https://github.com/docker-library/mongo/issues/239 and https://github.com/docker-library/mongo/issues/172.
+- Create stack `ebl-mongodb` from [mongodb.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb.yml). Initdb functionality does not work well with SSL, so we enable it in the next step. See: <https://github.com/docker-library/mongo/issues/239> and <https://github.com/docker-library/mongo/issues/172>.
 
 ### Replica Set and SSL
 
@@ -95,7 +102,8 @@ See: [Deploy a Replica Set](https://docs.mongodb.com/manual/tutorial/deploy-repl
 - Create secrects `mogoCA.crt`, `ebl01.pem`, and `ebl02.pem` from the respective certificates.
 - Redeploy stack with replica set and SSL enabled from [mongodb-replica_set.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/mongodb-replica_set.yml).
 - Initiate the replica set. Login to mongo and run (The hosts must have full address, otherwise it is not possible to connect to the replica set from outside the stack):
-  ```
+
+  ```sh
   rs.initiate( {
      _id : "rs-ebl1",
      members: [
@@ -111,7 +119,8 @@ See: [eses/mongodb_exporter
 ](https://hub.docker.com/r/eses/mongodb_exporter) and [](https://www.percona.com/doc/percona-monitoring-and-management/section.exporter.mongodb.html).
 
 - Create a user for the exporter.
-  ```
+
+  ```sh
   db.getSiblingDB("admin").createUser({
       user: "mongodb_exporter",
       pwd: "<password>",
@@ -121,9 +130,11 @@ See: [eses/mongodb_exporter
       ]
   })
   ```
+
 - Update the `swarmprom` stack:
-  - Add `mongodb-exporter` service: 
-    ```
+  - Add `mongodb-exporter` service:
+
+    ```yml
       mongodb-exporter:
         image: bitnami/mongodb-exporter
         command:
@@ -140,22 +151,25 @@ See: [eses/mongodb_exporter
             limits:
               memory: 128M
     ```
+
   - Add `mongodb-exporter` job to `prometheus`:
-    ```
+
+    ```yml
           JOBS: traefik:8080 mongodb-exporter:9104
     ```
+
   - Add `mongoCA.crt` to `secrets`.
 - Import [MongoDB dashboard](https://grafana.com/grafana/dashboards/2583) to Grafana.
 - Edit dashboard JSON and change metric prefix from `mongodb_` to `mongodb_mongod_`.
 
 ## Docker registry
 
-Create configs `registry_config` and `docker-registry-ui_config` from [registry_config.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/registry_config.yml) [docker-registry-ui_config](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/docker-registry-ui_config.yml). 
+Create configs `registry_config` and `docker-registry-ui_config` from [registry_config.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/registry_config.yml) [docker-registry-ui_config](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/docker-registry-ui_config.yml).
 
 Create secrets:
 
-* `httpass` bcrypt encrypted httpasswd file with users for the registry.
-* `registry_htpasswd` password of the regisry user used by the registry UI.
+- `httpass` bcrypt encrypted httpasswd file with users for the registry.
+- `registry_htpasswd` password of the regisry user used by the registry UI.
 
 Create stack from [registry.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/registry.yml).
 
@@ -166,8 +180,9 @@ Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/in
 The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api).
 
 - Update the `swarmprom` stack:
-  - Add `redis-exporter` service: 
-    ```
+  - Add `redis-exporter` service:
+
+    ```yml
     redis-exporter:
       image: bitnami/redis-exporter:1
       environment:
@@ -176,8 +191,10 @@ The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianL
        - net
        - monitoring
     ```
+
   - Add `redis-exporter` job to `prometheus`:
-    ```
+
+    ```yml
           JOBS: traefik:8080 mongodb-exporter:9216 redis-exporter:9121
     ```
 
@@ -185,13 +202,13 @@ The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianL
 
 ### Consul fails to elect a leader
 
- - Scale replicas to 0.
- - Scale replica back to desired value.
- 
+- Scale replicas to 0.
+- Scale replica back to desired value.
+
 When the new replicas join Consul should clean up old nodes and elect a new leader. To avoid stale nodes in the config the replicas should be shut down before the leader.
- 
+
 ### Redeployment fails
- 
+
 Long commands (e.g. `node-exporter`) get messed up and `$` is unescaped in the "Current engine state". If you have to redeploy a service/stack edit the "Last deploeyd instead" or copy the correct values this repository.
 
 ### Forgotten Grafana password
@@ -208,11 +225,11 @@ Docker can be restarted from the commandline by running `sudo service docker res
 
 ### Low diskspace
 
-Diskspace can be freed by removing old Docker images etc. See: https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127
+Diskspace can be freed by removing old Docker images etc. See: <https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127>
 
 ### Expired certificate
 
 The certificates are handled automatically by [Let's Encrypt](https://letsencrypt.org/) and `certbot` (managed in the Traefik configuration, cf.
 the [Traefik docs](https://doc.traefik.io/traefik/v1.7/configuration/acme/)).
-In case if fails the website becomes unavailable via https once the certificate expires. It might be necessary to manually restart the 
+In case if fails the website becomes unavailable via https once the certificate expires. It might be necessary to manually restart the
 `traefik-consul_traefik` service in swarmpit or via the server.
