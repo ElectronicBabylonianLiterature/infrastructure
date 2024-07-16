@@ -2,7 +2,13 @@ version: '3.3'
 services:
   consul-leader:
     image: consul:1.10
-    command: agent -server -client=0.0.0.0 -bootstrap-expect=1 -ui
+    command:
+     - agent
+     - -server
+     - -client=0.0.0.0
+     - -bootstrap-expect=1
+     - -ui
+     - -ui-content-path=/cluster/consul/ui/
     environment:
       CONSUL_BIND_INTERFACE: eth0
       CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true}'
@@ -13,17 +19,23 @@ services:
      - traefik-public
     secrets:
      - basic_auth_users
+    logging:
+      driver: json-file
+      options:
+        compress: 'true'
+        max-file: '3'
+        max-size: 10m
     deploy:
       labels:
-        traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
-        traefik.port: '8500'
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.frontend.rule: PathPrefix:/cluster/consul/
+        traefik.port: '8500'
+        traefik.tags: traefik-public
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl01
+         - node.labels.consul-host == true
   consul-replica:
     image: consul:1.10
     command: agent -server -client=0.0.0.0 -retry-join=consul-leader
@@ -35,6 +47,12 @@ services:
     networks:
      - default
      - traefik-public
+    logging:
+      driver: json-file
+      options:
+        compress: 'true'
+        max-file: '3'
+        max-size: 10m
     deploy:
       replicas: 0
   traefik:
@@ -53,17 +71,23 @@ services:
      -
       source: traefik-config
       target: /etc/traefik/traefik.toml
+    logging:
+      driver: json-file
+      options:
+        compress: 'true'
+        max-file: '3'
+        max-size: 10m
     deploy:
       labels:
-        traefik.tags: traefik-public
-        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
-        traefik.port: '8080'
+        traefik.frontend.auth.basic.usersFile: /run/secrets/basic_auth_users
         traefik.frontend.rule: PathPrefixStrip:/cluster/traefik/
+        traefik.port: '8080'
+        traefik.tags: traefik-public
       placement:
         constraints:
-         - node.role == manager
+         - node.labels.consul-host == true
 networks:
   default:
     driver: overlay
