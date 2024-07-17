@@ -18,29 +18,28 @@ This repository describes the architecture of the Electronic Babylonian Library,
     - [4.3.1. Initialize the swarm](#431-initialize-the-swarm)
     - [4.3.2. Optional: Test Swarmpit](#432-optional-test-swarmpit)
   - [4.4. SSL Certificates](#44-ssl-certificates)
-  - [4.4. HTTPS and Monitoring](#44-https-and-monitoring)
-    - [4.4.1. Traefik and Consul](#441-traefik-and-consul)
-    - [4.4.2. Swarmpit](#442-swarmpit)
-    - [4.4.3. Swarmprom](#443-swarmprom)
-  - [MongoDB initialization](#mongodb-initialization)
-  - [Replica set](#replica-set)
-  - [Monitoring](#monitoring)
-- [Docker registry](#docker-registry)
-- [eBL application](#ebl-application)
-- [9. Troubleshooting](#9-troubleshooting)
-  - [9.1. Consul fails to elect a leader](#91-consul-fails-to-elect-a-leader)
-  - [9.2. Redeployment fails](#92-redeployment-fails)
-  - [9.3. Forgotten Grafana password](#93-forgotten-grafana-password)
-  - [9.4. "invalid memory address or nil pointer dereference" from mongodb\_exporter](#94-invalid-memory-address-or-nil-pointer-dereference-from-mongodb_exporter)
-  - [9.5. The cluster becomes unresponsive](#95-the-cluster-becomes-unresponsive)
-  - [9.6. Low diskspace](#96-low-diskspace)
-  - [9.7. Expired certificate](#97-expired-certificate)
+  - [4.5. HTTPS and Monitoring](#45-https-and-monitoring)
+    - [4.5.1. Traefik and Consul](#451-traefik-and-consul)
+    - [4.5.2. Swarmpit](#452-swarmpit)
+    - [4.5.3. Swarmprom](#453-swarmprom)
+  - [4.6. MongoDB initialization](#46-mongodb-initialization)
+  - [4.7. Replica set](#47-replica-set)
+  - [4.8. Monitoring](#48-monitoring)
+  - [4.9. Docker registry](#49-docker-registry)
+  - [4.10. eBL application](#410-ebl-application)
+  - [4.11. Mongosync](#411-mongosync)
+- [5. Troubleshooting](#5-troubleshooting)
+  - [5.1. Consul fails to elect a leader](#51-consul-fails-to-elect-a-leader)
+  - [5.2. Redeployment fails in Swarmpit UI](#52-redeployment-fails-in-swarmpit-ui)
+  - [5.3. Forgotten Grafana password](#53-forgotten-grafana-password)
+  - [5.4. "invalid memory address or nil pointer dereference" from mongodb\_exporter](#54-invalid-memory-address-or-nil-pointer-dereference-from-mongodb_exporter)
+  - [5.5. The cluster becomes unresponsive](#55-the-cluster-becomes-unresponsive)
+  - [5.6. Low diskspace](#56-low-diskspace)
+  - [5.7. Expired certificate](#57-expired-certificate)
 
 ## 1. General Architecture
 
 The system consists of a Docker Swarm distributed over three Debian VMs. The web app is built in React/TypeScript and communicates with a Python backend and a MongoDB database. When a PR is merged into the master branch of the ebl-api or ebl-frontend repositories, a new Docker image is built and pushed to our own private Docker registry. The next time the ebl-stack is re-deployed (either via the commandline or the Swarmpit UI), the new image is pulled and goes live.
-
-<!-- todo: add system architecture graph -->
 
 Each component of the system is implemented as a Docker stack that is configured with a YAML-file and optionally some other configuration
 files or secrets (passwords and api keys). Each stack is deployed in a Docker swarm that distributed all services across the three VMs.
@@ -59,7 +58,7 @@ Networking is handled by Traefik, a reverse proxy that allows our Docker service
 
 Monitoring and basic maintenance is primarily done via [Swarmpit](https://swarmpit.io/). Our instance is accessible at <https://www.ebl.lmu.de/cluster/swarmpit/> and allows you to check the system status, view logs, and (re-)deploy services.
 
-<!-- todo: add swarmpit screenshot -->
+![Swarmpit interface](img/swarmpit.png)
 
 For more complex tasks you need to access the servers via ssh. For that, you need to activate the BAdW full-tunnel VPN and log into the server
 with your username and password. It is recommended to add the three nodes to your ssh config and set up ssh keys which greatly simplifies
@@ -308,11 +307,11 @@ The following commands only need to be run once on the first VM and will then be
    docker secret create ebl03.pem ./ebl03.pem
    ```
 
-### 4.4. HTTPS and Monitoring
+### 4.5. HTTPS and Monitoring
 
 We use a setup based on the (now deprecated) [Docker Swarm Rocks](https://dockerswarm.rocks).
 
-#### 4.4.1. Traefik and Consul
+#### 4.5.1. Traefik and Consul
 
 See: [Traefik Proxy with HTTPS](https://dockerswarm.rocks/traefik/)
 
@@ -367,7 +366,7 @@ Next, create the stack `traefik-consul`:
 docker stack deploy -c infrastructure/traefik-consul.yml traefik-consul
 ```
 
-#### 4.4.2. Swarmpit
+#### 4.5.2. Swarmpit
 
 See: [Swarmpit web user interface for your Docker Swarm cluster](https://dockerswarm.rocks/swarmpit/).
 
@@ -379,7 +378,7 @@ docker stack deploy -c swarmpit.yml swarmpit
 
 The UI should now be accessible at <https://www.ebl.badw.de/cluster/swarmpit/>.
 
-#### 4.4.3. Swarmprom
+#### 4.5.3. Swarmprom
 
 See: [Docker Swarm Rocks Swarmprom for real-time monitoring and alerts](https://dockerswarm.rocks/swarmprom/).
 
@@ -403,7 +402,7 @@ You should now be able to log into the grafana ui at <https://www.ebl.badw.de/cl
 
 Import the [Traefik dashboard](https://grafana.com/grafana/dashboards/4475) to Grafana.
 
-### MongoDB initialization
+### 4.6. MongoDB initialization
 
 For the database we will first set up a basic stack without encryption, running one MongoDB container per VM.
 The instances are initially independent and will later be linked into a replica set.
@@ -415,7 +414,7 @@ The instances are initially independent and will later be linked into a replica 
 - Create the intial `ebl-mongodb` stack: `docker stack deploy -c ~/infrastructure/mongodb.yml ebl-mongodb`. This will initialize the db without SSL encryption
   first; we do it this way because enabling encryption right away does not work well, and update the stack in the next step.
 
-### Replica set
+### 4.7. Replica set
 
 For the replica set we need to update the `ebl-mongodb` stack with SSL (and some more configuration). This will override the previous, basic stack, but the volumes
 initialized in the previous step will persist.
@@ -478,7 +477,7 @@ docker secret rm ebl01.pem ebl02.pem ebl03.pem mongoCA.crt
 
 And re-generate the certificates and secrets as described above.
 
-### Monitoring
+### 4.8. Monitoring
 
 See: [eses/mongodb_exporter
 ](https://hub.docker.com/r/eses/mongodb_exporter) and [](https://www.percona.com/doc/percona-monitoring-and-management/section.exporter.mongodb.html).
@@ -496,13 +495,49 @@ db.getSiblingDB("admin").createUser({
 })
 ```
 
+On this occasion, we can also create the `ebl-api` and `mongosync` users for the eBL app:
+
+```js
+db.getSiblingDB("admin").createUser({
+    user: "ebl-api",
+    pwd: "<password>",
+    roles: [
+        {
+          "role": "readWrite",
+          "db": "ebl"
+        },
+        {
+          "role": "readWrite",
+          "db": "ebldev"
+        }
+  ]
+})
+
+db.getSiblingDB("admin").createUser({
+    user: "mongosync",
+    pwd: "<password>",
+    roles: [
+        {
+          "role": "read",
+          "db": "ebl"
+        },
+        {
+          "role": "readWrite",
+          "db": "ebldev"
+        }
+  ]
+})
+```
+
 Now you can uncomment the `mongodb-exporter` service from the `swarmprom` stack and redeploy the stack by running
 `docker stack deploy -c ~/infrastructure/swarmprom.yml swarmprom` again.
 
 You can now import the [MongoDB dashboard](https://grafana.com/grafana/dashboards/2583) to Grafana. In Grafana, edit the dashboard JSON and change the metric
 prefix from `mongodb_` to `mongodb_mongod_`.
 
-## Docker registry
+### 4.9. Docker registry
+
+![Registry UI](img/registry_ui.png)
 
 The private Docker registry is were the eBL api and frontend apps will be pushed by GitHub CI and then pulled by our stacks when being redeployed after updates.
 It requires a separate set of credentials and configs.
@@ -542,61 +577,61 @@ Before pulling from the registry it may be necessary to run `docker login ebl.ba
 be unable to pull, showing `No such image`. It may even be necessary to login twice, once with and once without `sudo`, and on all VMs individually, and
 pass the `--with-registry-auth` flag when `deploy`ing.
 
-## eBL application
+### 4.10. eBL application
 
-Create stack from [ebl.yml](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml). The Docker images should be in the registry before deploying the stack.
-[Ai-api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) service is optional and could be left out. The **EBL_AI_API** environment variable on the [api](https://github.com/ElectronicBabylonianLiterature/infrastructure/blob/master/ebl.yml) has to be present.
-The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api).
+In ebl.yml, replace the placeholders in `services.api.environment` with the real keys/credentials, and deploy the stack:
 
-- Update the `swarmprom` stack:
-  - Add `redis-exporter` service:
+```sh
+docker stack deploy -c infrastructure/ebl.yml ebl --with-registry-auth
+```
 
-    ```yml
-    redis-exporter:
-      image: bitnami/redis-exporter:1
-      environment:
-        REDIS_ADDR: redis://redis:6379
-      networks:
-       - net
-       - monitoring
-    ```
+If it fails with `No such image`, make sure the image is in the registry and be sure to `docker login` as described above. If it fails with another error (`Non-zero exit`),
+it means the container was successfully pulled but the app failed to start for some other reason, e.g., incorrect environment variables or a wrong command.
 
-  - Add `redis-exporter` job to `prometheus`:
+Note that the environment variables for the frontend are configured in [GitHub actions](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml)
+and passed to the Docker image from there.
 
-    ```yml
-          JOBS: traefik:8080 mongodb-exporter:9216 redis-exporter:9121
-    ```
+The `ai-api` service is optional and could be left out (but the `EBL_AI_API` environment variable must be set either way).
+The **ebl-ai-api repository** is [here](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api). The `redis-exporter` service and the corresponding `prometheus` job
+in the `swarmprom` stack are needed for the ai-api.
 
-## 9. Troubleshooting
+### 4.11. Mongosync
 
-### 9.1. Consul fails to elect a leader
+The script for populating the development db `ebldev` is developed in a dedicated repository at <https://github.com/ElectronicBabylonianLiterature/mongosync>.
+It requires `mongosync_user` and `mongosync_password` Docker secrets matching the credentials set up above (see section *Monitoring*). Download the
+docker-compose.yml or clone the repository and run `docker stack deploy -c mongosync/docker-compose.yml mongosync`.
+
+## 5. Troubleshooting
+
+### 5.1. Consul fails to elect a leader
 
 - Scale replicas to 0.
 - Scale replica back to desired value.
 
 When the new replicas join Consul should clean up old nodes and elect a new leader. To avoid stale nodes in the config the replicas should be shut down before the leader.
 
-### 9.2. Redeployment fails
+### 5.2. Redeployment fails in Swarmpit UI
 
-Long commands (e.g. `node-exporter`) get messed up and `$` is unescaped in the "Current engine state". If you have to redeploy a service/stack edit the "Last deploeyd instead" or copy the correct values this repository.
+Long commands (e.g. `node-exporter`) get messed up and `$` is unescaped in the "Current engine state". If you have to redeploy a service/stack edit the "Last deployed" instead
+or copy the correct values from the server.
 
-### 9.3. Forgotten Grafana password
+### 5.3. Forgotten Grafana password
 
 The Grafana admin password is set up only on first run. It can be resetted later vie the CLI `docker exec -ti <container id> grafana-cli admin reset-admin-password <new password>`.
 
-### 9.4. "invalid memory address or nil pointer dereference" from mongodb_exporter
+### 5.4. "invalid memory address or nil pointer dereference" from mongodb_exporter
 
 There is a bug in the exporter ([PMM-4375](https://jira.percona.com/browse/PMM-4375)). We should update it as soon as the fix is released. The exporter has been updated.
 
-### 9.5. The cluster becomes unresponsive
+### 5.5. The cluster becomes unresponsive
 
 Docker can be restarted from the commandline by running `sudo service docker restart` in all the affected instances. If it is not possible to connect with SSH, ask ITG to reboot/investigate.
 
-### 9.6. Low diskspace
+### 5.6. Low diskspace
 
 Diskspace can be freed by removing old Docker images etc. See: <https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127>
 
-### 9.7. Expired certificate
+### 5.7. Expired certificate
 
 The certificates are handled automatically by [Let's Encrypt](https://letsencrypt.org/) and `certbot` (managed in the Traefik configuration, cf.
 the [Traefik docs](https://doc.traefik.io/traefik/v1.7/configuration/acme/)).
