@@ -2,6 +2,9 @@
 
 This repository describes the architecture of the Electronic Babylonian Library, a Dockerized cuneiform editing platform hosted on three VMs at the [Leibniz Supercomputing Centre (Leibniz Rechenzentrum, LRZ)](https://www.lrz.de/english/) of the [Bavarian Academy of Sciences and Humanities (Bayerische Akademie der Wissenschaften, BAdW)](https://badw.de/en/the-academy.html).
 
+## Table of Contents
+
+- [Table of Contents](#table-of-contents)
 - [1. General Architecture](#1-general-architecture)
 - [2. Monitoring and Maintenance](#2-monitoring-and-maintenance)
 - [3. Backup copies](#3-backup-copies)
