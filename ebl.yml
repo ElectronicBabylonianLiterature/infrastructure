@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   ai-api:
-    image: www.ebl.lmu.de/ebl-ai-api:main
+    image: ebl.badw.de/ebl-ai-api:main
     networks:
      - ebl-api
     logging:
@@ -14,28 +14,33 @@ services:
           cpus: '1.0'
           memory: 2048M
   api:
-    image: www.ebl.lmu.de/ebl-api:master
-    command: 'poetry run waitress-serve --port=8000 --threads=6 --call ebl.app:get_app'
+    image: ebl.badw.de/ebl-api:master
+    command:
+     - poetry
+     - run
+     - waitress-serve
+     - --port=8000
+     - --threads=12
+     - --call
+     - ebl.app:get_app
     environment:
       AUTH0_AUDIENCE: dictionary-api
-      AUTH0_ISSUER: https://electronic-babylonian-literature.eu.auth0.com/
+      AUTH0_ISSUER: https://auth.ebl.lmu.de/
       AUTH0_PEM: <Auth0 PEM>
       CACHE_CONFIG: '{"CACHE_TYPE": "redis", "CACHE_REDIS_HOST": "redis"}'
-      MONGODB_URI: mongodb://<user>:<password>@lmkwitg-ebl01.srv.mwn.de:27017,lmkwitg-ebl02.srv.mwn.de:27018/ebl?replicaSet=rs-ebl1&tls=true&tlsCAFile=/run/secrets/mongoCA.crt
+      EBL_AI_API: http://ai-api:8001
+      MONGODB_URI: mongodb://ebl-api:<top_secret_password>@badwcai-ebl01.srv.mwn.de:27017,badwcai-ebl02.srv.mwn.de:27018,badwcai-ebl03.srv.mwn.de:27019/ebl?replicaSet=rs-ebl&tls=true&tlsCAFile=/run/secrets/mongoCA.crt
+      NEW_RELIC_CONFIG_FILE: newrelic.ini
+      NEW_RELIC_LICENSE_KEY: <key>
       SENTRY_DSN: <Sentry DSN>
       SENTRY_ENVIRONMENT: production
-      EBL_AI_API: http://ai-api:8001
     secrets:
-     -
-      source: mongoCA.crt
-      uid: '999'
-      gid: '999'
-      mode: 0400
+     - mongoCA.crt
     networks:
      - ebl-api
      - traefik-public
     deploy:
-      replicas: 2
+      replicas: 3
       labels:
         swarmpit.service.deployment.autoredeploy: 'true'
         traefik.tags: traefik-public
@@ -45,16 +50,16 @@ services:
         traefik.frontend.rule: PathPrefixStrip:/api/
       resources:
         limits:
-          cpus: '1.5'
+          cpus: '2.5'
           memory: 10G
   frontend:
-    image: www.ebl.lmu.de/ebl-frontend:master
+    image: ebl.badw.de/ebl-frontend:master
     networks:
      - traefik-public
     logging:
       driver: json-file
     deploy:
-      replicas: 2
+      replicas: 3
       labels:
         swarmpit.service.deployment.autoredeploy: 'true'
         traefik.tags: traefik-public
@@ -89,6 +94,8 @@ services:
 networks:
   ebl-api:
     driver: overlay
+  monitoring:
+    external: true
   traefik-public:
     external: true
 secrets:

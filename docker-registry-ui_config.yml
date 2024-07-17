@@ -4,7 +4,7 @@ listen_addr: 0.0.0.0:8000
 base_path: /cluster/registry-ui/
 
 # Registry URL with schema and port.
-registry_url: https://www.ebl.lmu.de
+registry_url: https://ebl.badw.de
 # Verify TLS certificate when using https.
 verify_tls: true
 
@@ -15,12 +15,11 @@ verify_tls: true
 # When the registry_password_file entry is used, the password can be passed as a docker secret
 # and read from file. This overides the registry_password entry.
 registry_username: admin
-#registry_password: ****
-registry_password_file: /run/secrets/docker-registry-ui_registry_password_file
+registry_password_file: /run/secrets/docker-registry-ui_admin_password
 
 # Event listener token.
 # The same one should be configured on Docker registry as Authorization Bearer token.
-event_listener_token: ****
+event_listener_token: <same token as in registry_config>
 # Retention of records to keep.
 event_retention_days: 7
 

@@ -18,7 +18,7 @@ defaultEntryPoints = ["http", "https"]
       
 
 [acme]
-email = "jussi.laasonen@lmu.de"
+email = <admin_email>
 storage = "traefik/acme/account"
 entryPoint = "https"
 acmeLogging = true
@@ -28,9 +28,12 @@ onHostRule = true
 entryPoint = "http"
 
 [[acme.domains]]
-  main = "www.ebl.lmu.de"
+  main = "www.ebl.badw.de"
+  sans = ["ebl.badw.de"]
+
 [[acme.domains]]
-  main = "www.ebl.uni-muenchen.de"
+  main = "www.ebl.lmu.de"
+  sans = ["www.ebl.uni-muenchen.de"]
 
 
 [docker]
@@ -44,7 +47,7 @@ endpoint = "consul-leader:8500"
 
 
 [api]
-
+  dashboard = true
 
 [metrics]
   [metrics.prometheus]

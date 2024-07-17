@@ -54,7 +54,7 @@ services:
     deploy:
       placement:
         constraints:
-         - node.hostname == lmkwitg-ebl02
+         - node.hostname == badwcai-ebl02
       resources:
         reservations:
           cpus: '0.15'
