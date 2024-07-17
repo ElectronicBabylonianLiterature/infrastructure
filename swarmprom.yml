@@ -86,7 +86,7 @@ services:
   grafana:
     image: stefanprodan/swarmprom-grafana:5.3.4
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: 2Dy4uy1GeOOM
+      GF_SECURITY_ADMIN_PASSWORD: <password>
       GF_SECURITY_ADMIN_USER: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
       GF_SERVER_ROOT_URL: https://ebl.badw.de/cluster/grafana/
