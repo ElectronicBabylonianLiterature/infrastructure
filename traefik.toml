@@ -13,12 +13,15 @@ defaultEntryPoints = ["http", "https"]
   [entryPoints.https]
   address = ":443"
   compress = true
+    [entryPoints.https.redirect]
+      regex = "/fragmentarium(.*)"
+      replacement = "/library$1"
     [entryPoints.https.tls]
     minVersion = "VersionTLS12"
       
 
 [acme]
-email = <admin_email>
+email = "fabian.simonjetz@caic.badw.de"
 storage = "traefik/acme/account"
 entryPoint = "https"
 acmeLogging = true
