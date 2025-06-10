@@ -521,7 +521,7 @@ It requires `mongosync_user` and `mongosync_password` Docker secrets matching th
 docker-compose.yml or clone the repository and run `docker stack deploy -c mongosync/docker-compose.yml mongosync`.
 
 ### 4.12 Sitemap
-For the sitemap automated update information, check the [Sitemap section](https://github.com/ElectronicBabylonianLiterature/ebl-frontend#sitemap) of the Frontend repository documentation.
+For the sitemap automated and manual update configuration, check the [Sitemap section](https://github.com/ElectronicBabylonianLiterature/ebl-frontend#sitemap) of the Frontend repository documentation.
 
 ## 5. Troubleshooting
 ### 5.1. Consul fails to elect a leader
