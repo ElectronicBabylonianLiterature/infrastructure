@@ -520,6 +520,9 @@ The script for populating the development db `ebldev` is developed in a dedicate
 It requires `mongosync_user` and `mongosync_password` Docker secrets matching the credentials set up above (see section _Monitoring_). Download the
 docker-compose.yml or clone the repository and run `docker stack deploy -c mongosync/docker-compose.yml mongosync`.
 
+### 4.12 Sitemap
+For the sitemap automated update information, check the [Sitemap section](https://github.com/ElectronicBabylonianLiterature/ebl-frontend#sitemap) of the Frontend repository documentation.
+
 ## 5. Troubleshooting
 ### 5.1. Consul fails to elect a leader
 - Scale replicas to 0.
