@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  db:
+    image: "mariadb:11.4"
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+      - MARIADB_DATABASE=inception
+      - MARIADB_USER=${DBUSER:-inception}
+      - MARIADB_PASSWORD=${DBPASSWORD:-inception}
+      - MARIADB_AUTO_UPGRADE=1
+    volumes:
+      - db-data:/var/lib/mysql
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_bin"]
+    healthcheck:
+      test: ["CMD", "mariadb-admin" ,"ping", "-h", "localhost", "-p${DBPASSWORD:-inception}", "-u${DBUSER:-inception}"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    networks:
+      - inception-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+         - node.hostname == badwcai-ebl03
+      restart_policy:
+        condition: on-failure
+
+  app:
+    image: "${INCEPTION_IMAGE:-ghcr.io/inception-project/inception}:${INCEPTION_VERSION:-37.0}"
+    ports:
+      - "${INCEPTION_PORT:-8080}:8080"
+    environment:
+      - INCEPTION_DB_DIALECT=org.hibernate.dialect.MariaDB106Dialect
+      - INCEPTION_DB_URL=jdbc:mariadb://db:3306/inception?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+      - INCEPTION_DB_USERNAME=${DBUSER:-inception}
+      - INCEPTION_DB_PASSWORD=${DBPASSWORD:-inception}
+      - SERVER_PORT=8080
+      - SERVER_ADDRESS=0.0.0.0
+      - SERVER_SERVLET_CONTEXT_PATH=/inception
+      - WICKET_CORE_CSRF_ACCEPTED_ORIGINS_0=www.ebl.badw.de
+      - WICKET_CORE_CSRF_ACCEPTED_ORIGINS_1=https://www.ebl.badw.de
+    volumes:
+      - app-data:/export
+    depends_on:
+      - db
+    networks:
+      - inception-net
+      - traefik-public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+         - node.hostname == badwcai-ebl03
+      restart_policy:
+        condition: on-failure
+      labels:
+        traefik.tags: traefik-public
+        traefik.docker.network: traefik-public
+        traefik.enable: 'true'
+        traefik.port: '8080'
+        traefik.frontend.rule: PathPrefix:/inception
+      
+volumes:
+  app-data:
+    driver: local
+  db-data:
+    driver: local
+
+networks:
+  inception-net:
+    driver: overlay
+  traefik-public:
+    external: true
