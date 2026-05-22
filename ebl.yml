@@ -21,7 +21,7 @@ services:
      - waitress-serve
      - --port=8000
      - --threads=12
-     - --connection-limit=500
+     - --connection-limit=100
      - --call
      - ebl.app:get_app
     environment:
@@ -49,6 +49,10 @@ services:
         traefik.enable: 'true'
         traefik.port: '8000'
         traefik.frontend.rule: PathPrefixStrip:/api/
+        traefik.frontend.rateLimit.extractorFunc: client.ip
+        traefik.frontend.rateLimit.rateSet.crawler.period: 1s
+        traefik.frontend.rateLimit.rateSet.crawler.average: 10
+        traefik.frontend.rateLimit.rateSet.crawler.burst: 25
       resources:
         limits:
           cpus: '2.5'
@@ -68,6 +72,10 @@ services:
         traefik.enable: 'true'
         traefik.port: '5000'
         traefik.frontend.rule: PathPrefix:/
+        traefik.frontend.rateLimit.extractorFunc: client.ip
+        traefik.frontend.rateLimit.rateSet.crawler.period: 1s
+        traefik.frontend.rateLimit.rateSet.crawler.average: 10
+        traefik.frontend.rateLimit.rateSet.crawler.burst: 25
   redis:
     image: redis:6-alpine
     command:
