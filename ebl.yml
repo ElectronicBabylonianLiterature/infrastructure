@@ -51,8 +51,8 @@ services:
         traefik.frontend.rule: PathPrefixStrip:/api/
         traefik.frontend.rateLimit.extractorFunc: client.ip
         traefik.frontend.rateLimit.rateSet.crawler.period: 1s
-        traefik.frontend.rateLimit.rateSet.crawler.average: 10
-        traefik.frontend.rateLimit.rateSet.crawler.burst: 25
+        traefik.frontend.rateLimit.rateSet.crawler.average: 5
+        traefik.frontend.rateLimit.rateSet.crawler.burst: 10
       resources:
         limits:
           cpus: '2.5'
@@ -74,8 +74,8 @@ services:
         traefik.frontend.rule: PathPrefix:/
         traefik.frontend.rateLimit.extractorFunc: client.ip
         traefik.frontend.rateLimit.rateSet.crawler.period: 1s
-        traefik.frontend.rateLimit.rateSet.crawler.average: 10
-        traefik.frontend.rateLimit.rateSet.crawler.burst: 25
+        traefik.frontend.rateLimit.rateSet.crawler.average: 5
+        traefik.frontend.rateLimit.rateSet.crawler.burst: 10
   redis:
     image: redis:6-alpine
     command:
