@@ -13,7 +13,7 @@ groups:
       summary: CPU alert for Swarm task '{{ $labels.container_label_com_docker_swarm_task_name
         }}' on '{{ $labels.container_label_com_docker_swarm_node_id }}'
   - alert: task_high_memory_usage_1g
-    expr: sum(container_memory_rss{container_label_com_docker_swarm_task_name!~"|ebl-mongodb.+|ebl_api.+"})
+    expr: sum(container_memory_rss{container_label_com_docker_swarm_task_name!~"|ebl-mongodb.+|ebl_api.+|ebl_ai-api.+"})
       BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 1e+09
     for: 1m
     annotations:
@@ -22,23 +22,51 @@ groups:
         $value}}.'
       summary: Memory alert for Swarm task '{{ $labels.container_label_com_docker_swarm_task_name
         }}' on '{{ $labels.container_label_com_docker_swarm_node_id }}'
-  - alert: task_high_api.memory_usage_9.8g
-    expr: sum(container_memory_rss{container_label_com_docker_swarm_task_name=~"ebl_api.+"})
-      BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 9.8e+09
-    for: 1m
+  - alert: ebl_container_memory_warning
+    expr: >-
+      (100 * sum by (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) (container_memory_rss{container_label_com_docker_swarm_task_name=~"ebl_api.*|ebl_ai-api.*|ebl-mongodb_mongo.*"}) / on (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) max by (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) (container_spec_memory_limit_bytes{container_label_com_docker_swarm_task_name=~"ebl_api.*|ebl_ai-api.*|ebl-mongodb_mongo.*"} > 0)) > 85
+    for: 5m
+    labels:
+      severity: warning
     annotations:
-      description: '{{ $labels.container_label_com_docker_swarm_task_name }} on ''{{
-        $labels.container_label_com_docker_swarm_node_id }}'' memory usage is {{ humanize
-        $value}}.'
-      summary: Memory alert for Swarm task '{{ $labels.container_label_com_docker_swarm_task_name
-        }}' on '{{ $labels.container_label_com_docker_swarm_node_id }}'
-  - alert: task_high_mongo_memory_usage_3.8g
-    expr: sum(container_memory_rss{container_label_com_docker_swarm_task_name=~"ebl-mongodb.+"})
-      BY (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) > 3.8e+09
-    for: 1m
+      summary: 'Container memory exceeds 85% of its limit'
+  - alert: ebl_container_memory_critical
+    expr: >-
+      (100 * sum by (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) (container_memory_rss{container_label_com_docker_swarm_task_name=~"ebl_api.*|ebl_ai-api.*|ebl-mongodb_mongo.*"}) / on (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) max by (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) (container_spec_memory_limit_bytes{container_label_com_docker_swarm_task_name=~"ebl_api.*|ebl_ai-api.*|ebl-mongodb_mongo.*"} > 0)) > 95
+    for: 2m
+    labels:
+      severity: critical
     annotations:
-      description: '{{ $labels.container_label_com_docker_swarm_task_name }} on ''{{
-        $labels.container_label_com_docker_swarm_node_id }}'' memory usage is {{ humanize
-        $value}}.'
-      summary: Memory alert for Swarm task '{{ $labels.container_label_com_docker_swarm_task_name
-        }}' on '{{ $labels.container_label_com_docker_swarm_node_id }}'
+      summary: 'Container memory exceeds 95% of its limit'
+  - alert: ebl_container_oom_detected
+    expr: >-
+      sum by (container_label_com_docker_swarm_task_name, container_label_com_docker_swarm_node_id) (increase(container_oom_events_total{container_label_com_docker_swarm_task_name=~"ebl_api.*|ebl_ai-api.*|ebl-mongodb_mongo.*"}[5m])) > 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Container OOM event detected'
+  - alert: mongodb_exporter_unavailable
+    expr: >-
+      up{job="mongodb-exporter"} == 0 or absent(up{job="mongodb-exporter"})
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'MongoDB monitoring exporter unavailable'
+  - alert: node_exporter_coverage_incomplete
+    expr: >-
+      (sum(up{job="node-exporter"} == 1) or vector(0)) < 3
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Fewer than three node exporters are healthy'
+  - alert: cadvisor_coverage_incomplete
+    expr: >-
+      (sum(up{job="cadvisor"} == 1) or vector(0)) < 3
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Fewer than three cAdvisor targets are healthy'
