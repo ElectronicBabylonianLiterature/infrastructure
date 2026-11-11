@@ -551,6 +551,14 @@ the [﻿Traefik docs](https://doc.traefik.io/traefik/v1.7/configuration/acme/)).
 In case if fails the website becomes unavailable via https once the certificate expires. It might be necessary to manually restart the
 `traefik-consul_traefik` service in swarmpit or via the server.
 
+### 5.8. Mitigating Aggressive Scraping and API Thread Exhaustion
+
+To protect the backend Python API and worker threads from automated scrapers, the following configuration updates in `ebl.yml` can be applied:
+
+- *Deploy a Traefik Sinkhole Service:* Add a lightweight `nginx:alpine` container to the stack configured to instantly return an HTTP 403 Forbidden status for blocked requests.
+- *Configure Multi-Header IP Blacklisting:* Implement high-priority Traefik frontend rules (`priority: '1000'`) targeting abusive IPs and subnets by matching against `X-Forwarded-For` and `X-Real-IP` headers.
+- *Filter Abusive User-Agents:* Add regex frontend rules to intercept and route requests from aggressive crawlers (`ExaSearchBot`, `Reflectionbot`) directly to the sinkhole.
+- *Calibrate Rate-Limiting Thresholds:* Set strict Traefik rate limits on the `api` service (`average: 2`, `burst: 5`) to prevent thread exhaustion and HTTP 499 errors.
 
 <!-- eraser-additional-content -->
 ## Diagrams
