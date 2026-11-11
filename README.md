@@ -70,6 +70,8 @@ access which is especially convenient for setting up the database which requires
 
 Additional information and statistics about the system are displayed in our Grafana instance [﻿here](https://www.ebl.badw.de/cluster/grafana/). Traefik also comes with a UI that can be accessed at [﻿https://www.ebl.badw.de/cluster/traefik/](https://www.ebl.badw.de/cluster/traefik/). Our private Docker registry has a basic UI, too.
 
+For the **November 2026 production monitoring audit**, confirmed reliability findings, outstanding checks, and the proposed staged Traefik modernization, see [Phase 0 — monitoring and Traefik modernization](docs/phase-0-monitoring-and-traefik-modernization.md). This is a planning document, not a deployment instruction.
+
 ## 3. Backup copies
 6 daily backup images of the servers are made, at 02:20, 06:20, 10:20, 14:20, 18:20 and 22:20 hrs. The images are kept for 14 days. The images
 can be restored by the LRZ on short notice by opening a ticket on their [﻿Service Desk](https://servicedesk.lrz.de/). If it is necessary to
