@@ -140,7 +140,10 @@ services:
     command:
      - --mongodb.direct-connect=false
      - --mongodb.uri=mongodb://mongodb_exporter:<top_secret_password>@badwcai-ebl01.srv.mwn.de:27017,badwcai-ebl02.srv.mwn.de:27018,badwcai-ebl03.srv.mwn.de:27019/admin?tls=true&tlsCAFile=/run/secrets/mongoCA.crt&tlsInsecure=true
-     - --collect-all
+     # Explicit, bounded collection scope. Do not enable --collect-all here:
+     # full collection/index statistics can add work to an already busy database.
+     - --collector.diagnosticdata
+     - --collector.replicasetstatus
     networks:
      - net
     secrets:
@@ -188,7 +191,8 @@ services:
       - --web.external-url=/cluster/prometheus/
       - --web.route-prefix=/
     environment:
-      JOBS: traefik:8080 mongodb-exporter:9104 redis-exporter:9121
+      # Percona mongodb_exporter 0.37.0 listens on 9216 (not 9104).
+      JOBS: traefik:8080 mongodb-exporter:9216 redis-exporter:9121
     secrets:
      - basic_auth_users
     volumes:
