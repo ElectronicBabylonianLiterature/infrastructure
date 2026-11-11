@@ -140,7 +140,8 @@ services:
     command:
      - --mongodb.direct-connect=false
      - --mongodb.uri=mongodb://mongodb_exporter:<top_secret_password>@badwcai-ebl01.srv.mwn.de:27017,badwcai-ebl02.srv.mwn.de:27018,badwcai-ebl03.srv.mwn.de:27019/admin?tls=true&tlsCAFile=/run/secrets/mongoCA.crt&tlsInsecure=true
-     - --collect-all
+     - --collector.diagnosticdata
+     - --collector.replicasetstatus
     networks:
      - net
     secrets:
