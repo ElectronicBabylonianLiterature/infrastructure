@@ -23,6 +23,8 @@ Entrypoints: HTTP web :80, HTTPS websecure :443, metrics :9100, health :8090. Th
 
 ACME storage: /home/farhanabdulla/ebl-traefik3-acme/acme.json on badwcai-ebl01, bind-mounted at /var/lib/traefik/acme.json. Parent directory mode 0700 and file mode 0600. Contains ACME account credentials and private certificate keys: NEVER print, email, or commit it. Back it up using approved secret-storage procedures. Pin the Swarm task to the host holding its persistent storage.
 
+**Deployment parity note (2026-11-13):** The live Traefik 3 service limits CPU to 0.5 and memory to 256 MiB, reserves 64 MiB memory, restarts on failure with a 5-second delay, and uses stop-first updates (parallelism 1, pause on failure, 15-second monitor, failure ratio 0). The draft manifest now carries these values. Stack-generated service and container labels are intentionally not hardcoded. The default Docker logging driver is inherited and not overridden. Compare all remaining live fields before the first stack redeploy.
+
 **The new traefik3-production.yml is a review draft reflecting observed runtime configuration, not yet a verified bit-for-bit representation of the active service.** Compare the live task spec (command, ports, labels, secrets, config paths, mounts, networks, restart policy and logging) before any first redeploy. External Swarm config objects are cluster-local; their non-secret source contents still need controlled export, review and versioning before disaster-recovery documentation is complete. NEVER commit raw service snapshots.
 
 ## Verify read-only
@@ -38,13 +40,13 @@ ACME renews certificates that it issued itself. Add a monitored certificate-expi
 
 ## Monitoring
 
-Swarmprom JOBS temporarily retains both traefik:8080 and traefik3parity_proxy:9100. It is expected for the old target to be down with Traefik 1.7 scaled to zero. Require the NEW production scrape target to be up. The checked-in swarmprom.yml includes historical credential placeholders, so do NOT redeploy it without reconciling live protected environment values.
+Swarmprom JOBS temporarily retains both traefik:8080 and traefik3parity_proxy:9100. The checked-in stack now references `task_rules_tls3_20261113T213540Z` to match the live Prometheus rule config. It is expected for the old target to be down with Traefik 1.7 scaled to zero. Require the NEW production scrape target to be up. The checked-in swarmprom.yml includes historical credential placeholders, so do NOT redeploy it without reconciling live protected environment values.
 
 ## Certificate expiry alerting
 
 Prometheus exports `traefik_tls_certs_not_after{job="traefik3parity_proxy"}` for both ACME-managed certificate groups. The source rules in [`prometheus/traefik3-certificate-alerts.yml`](../prometheus/traefik3-certificate-alerts.yml) define a warning at <30 days remaining, an alert when the two expected expiry series go missing, and a critical alert when the Traefik 3 scrape target is unavailable.
 
-The production Prometheus service still loads an **immutable external Swarm config** at `/etc/prometheus/swarm_task.rules.yml`, so adding that YAML file to GitHub does not activate it. Merge those rules into a versioned copy of the **actual live** Swarm rules, validate with `promtool check rules`, atomically attach the new config to `swarmprom_prometheus`, verify via `/api/v1/rules`, and preserve the previous config as rollback. This replaces only the Prometheus task, not the public Traefik task. Do not overwrite the existing OOM, exporter, memory and host monitoring rules with an outdated Git checkout.
+**Installed 2026-11-13:** Live Prometheus now mounts versioned Swarm rules config `task_rules_tls3_20261113T213540Z` at `/etc/prometheus/swarm_task.rules.yml`. The existing rules were preserved, `promtool` accepted the combined file, all three Traefik 3 alert rules were verified in Prometheus, and the new Traefik scrape target remained healthy. The previous task rules config `task_rules_inf04_20261111_v2` and private snapshot remain available for rollback. The GitHub source rule snippet is not a replacement for the entire deployed combined rules file. **Do not deploy the checked-in `swarmprom.yml` without first reconciling historical credentials/placeholders and all runtime service settings.**
 
 Before claiming alert delivery works, check the Prometheus-to-Alertmanager connection and independently test routing/notification delivery without disturbing real workloads. The expiry warnings can remain inactive until the threshold is reached.
 
@@ -64,7 +66,8 @@ For a TLS-only failure, prefer carefully switching the dynamic config back to th
 - [x] Distinct production Prometheus scrape target healthy
 - [ ] Verify production manifest against ALL current live Swarm fields before any stack deploy
 - [ ] Export, sanitize and review static/dynamic config sources for Git
-- [ ] Enable certificate-expiry/renewal alerting and test alert path
+- [x] Install and verify three certificate-expiry/missing-metrics/target-down alert rules (2026-11-13)
+- [ ] Verify Alertmanager notification delivery with an authorized synthetic test
 - [ ] Independently verify authenticated admin routes and a real API workflow
 - [ ] Validate LAD-origin requests with Luis in Leipzig (deferred)
 - [ ] Retire older staging service and legacy scrape job only after dependencies are cleared

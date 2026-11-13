@@ -40,8 +40,21 @@ services:
       placement:
         constraints:
           - node.hostname == badwcai-ebl01
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
       update_config:
+        parallelism: 1
         order: stop-first
+        failure_action: pause
+        monitor: 15s
+        max_failure_ratio: 0
 
 networks:
   traefik-public:

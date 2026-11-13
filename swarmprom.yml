@@ -202,7 +202,7 @@ services:
       source: node_rules
       target: /etc/prometheus/swarm_node.rules.yml
      -
-      source: task_rules_inf04_20261111_v2
+      source: task_rules_tls3_20261113T213540Z
       target: /etc/prometheus/swarm_task.rules.yml
     logging:
       driver: json-file
@@ -270,7 +270,7 @@ configs:
     external: true
   node_rules:
     external: true
-  task_rules_inf04_20261111_v2:
+  task_rules_tls3_20261113T213540Z:
     external: true
 secrets:
   basic_auth_users:
