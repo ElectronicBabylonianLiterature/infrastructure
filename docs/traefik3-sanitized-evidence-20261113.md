@@ -57,3 +57,22 @@ The checked-in `swarmprom.yml` was changed to fail closed on missing `EBL_ALERTM
 2. Render and compare the proposed Traefik 3 stack against live service metadata; document any intentional differences and test in staging before first redeploy.
 3. Reconcile monitoring credentials and service defaults before any full Swarmprom stack deployment. No environment or URI values were collected in this safe report.
 4. Verify Alertmanager notification delivery with a controlled synthetic alert; LAD-origin API validation is deferred as agreed.
+
+## 2026-11-13 local configuration safety scan
+
+A subsequent **read-only**, hash-verifying scan of the four private configuration copies produced the following results. The source files remain private on the eBL server; only this classification is recorded in Git.
+
+| Config | SHA-256 match | Scanner flags | Publication decision |
+| --- | --- | --- | --- |
+| `traefik3stage4-static-20261113` | Yes | No recognized sensitive-pattern matches | Private human review pending |
+| `traefik3acme-dynamic-20261113T205821Z` | Yes | Two secret-reference/label matches; structural review fields listed below | Private human review pending |
+| `task_rules_tls3_20261113T213540Z` | Yes | No recognized sensitive-pattern matches | Private human review pending |
+| `node_rules` | Yes | No recognized sensitive-pattern matches | Private human review pending |
+
+The dynamic JSON has 12 routers, 13 middlewares and 11 services. Its three sensitive **field categories** were:
+
+- `/http/middlewares/*/basicAuth/usersFile`: Docker secret-path references, *not the secret file contents*;
+- `/http/middlewares/*/ipAllowList/sourceRange`: network access-control CIDRs, which may expose internal or third-party network details;
+- `/http/services/*/loadBalancer/servers/[]/url`: internal upstream targets; inspect URL userinfo and query parameters before any publication.
+
+Scanner output alone **does not establish that an entire file is safe to commit**, and matched counts are not evidence that a secret was actually embedded. No raw configuration values were displayed or transferred. Until a designated operator privately reviews those source files and approves their publication, retain them in an access-controlled backup/provisioning location and do not add them to the public repository. The reviewed data, plus a reconstructable off-host backup, are prerequisites before treating this PR as an authoritative disaster-recovery deployment source.
