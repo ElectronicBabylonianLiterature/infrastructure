@@ -59,6 +59,10 @@ Before claiming alert delivery works, check the Prometheus-to-Alertmanager conne
 
 For a TLS-only failure, prefer carefully switching the dynamic config back to the preserved static-certificate config instead of a full-ingress rollback. Review active config names first; retain the pre-change service snapshot and original Swarm secrets.
 
+## Recorded server evidence and unresolved parity
+
+The [sanitized November 13 server evidence](traefik3-sanitized-evidence-20261113.md) records exact configuration names and SHA-256 hashes, network and secret attachments, resource and update/rollback policies, and which monitoring services still receive credentials in the environment or command arguments. It contains **no** secret payloads and **no** raw Swarm config bodies. The active Traefik 3 rollback policy monitor is 5 seconds (the update monitor is 15 seconds); the draft manifest has been updated to match. Existing monitoring stack credentials and config body export remain blockers for an authoritative full-stack redeploy.
+
 ## Outstanding work
 
 - [x] Production Traefik 3 cutover / TLS, routing, IPv6 acceptance

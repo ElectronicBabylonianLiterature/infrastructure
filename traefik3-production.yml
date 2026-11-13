@@ -49,6 +49,12 @@ services:
       restart_policy:
         condition: on-failure
         delay: 5s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: pause
+        monitor: 5s
+        max_failure_ratio: 0
       update_config:
         parallelism: 1
         order: stop-first
