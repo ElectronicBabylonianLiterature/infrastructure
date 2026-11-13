@@ -49,7 +49,7 @@ The report **withheld actual environment values**. Service metadata confirms the
 | `swarmprom_mongodb-exporter` | `--mongodb.uri` command argument, redacted in report | Yes; do not replace with placeholder |
 | `swarmprom_prometheus` | `JOBS` (only non-secret endpoints shown); basic-auth secret reference | Preserve dual scraping and secret reference |
 
-Several checked-in `swarmprom.yml` services specify `json-file` logging, whereas these live service specs reported the default driver. **The complete monitoring stack must not be blindly redeployed from GitHub.** A protected deployment-time credential source and complete live parity check are prerequisites.
+The checked-in `swarmprom.yml` was changed to fail closed on missing `EBL_ALERTMANAGER_SLACK_URL`, `EBL_GRAFANA_ADMIN_PASSWORD`, or `EBL_MONGODB_EXPORTER_URI` rather than substituting historical credential placeholders. This does not supply or migrate secrets. Several checked-in `swarmprom.yml` services specify `json-file` logging, whereas these live service specs reported the default driver. **The complete monitoring stack must not be blindly redeployed from GitHub.** A protected deployment-time credential source and complete live parity check are prerequisites.
 
 ## Remaining gates
 

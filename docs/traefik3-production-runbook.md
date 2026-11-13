@@ -40,13 +40,21 @@ ACME renews certificates that it issued itself. Add a monitored certificate-expi
 
 ## Monitoring
 
-Swarmprom JOBS temporarily retains both traefik:8080 and traefik3parity_proxy:9100. The checked-in stack now references `task_rules_tls3_20261113T213540Z` to match the live Prometheus rule config. It is expected for the old target to be down with Traefik 1.7 scaled to zero. Require the NEW production scrape target to be up. The checked-in swarmprom.yml includes historical credential placeholders, so do NOT redeploy it without reconciling live protected environment values.
+Swarmprom JOBS temporarily retains both traefik:8080 and traefik3parity_proxy:9100. The checked-in stack now references `task_rules_tls3_20261113T213540Z` to match the live Prometheus rule config. It is expected for the old target to be down with Traefik 1.7 scaled to zero. Require the NEW production scrape target to be up. The checked-in `swarmprom.yml` now **fails closed** unless three private deployment-time environment variables are provided, but do NOT redeploy it until all existing live settings and logging differences are reviewed; the actual credentials are not in Git.
+
+### Secure deployment inputs (no credentials committed)
+
+For a future full monitoring-stack deployment, `swarmprom.yml` now requires three variables: `EBL_ALERTMANAGER_SLACK_URL`, `EBL_GRAFANA_ADMIN_PASSWORD`, and `EBL_MONGODB_EXPORTER_URI`. These are **the existing live values**, not new passwords or new endpoints. Source them only from an institution-approved protected credential store into a restricted deployment environment; never add them to a commit, transcript, or CI log. Do not pass them as shell arguments that may appear in process listings.
+
+**This is a deployment input guard, not a secrets migration.** The current monitoring images consume those values as environment variables or command arguments, which remain readable to suitably privileged Docker administrators. A subsequent secrets-management migration requires verifying exporter and Alertmanager image support and a separate controlled deployment.
+
+Before any `docker stack deploy`, compare the entire rendered monitoring stack against the live services. The evidence report notes that the live monitoring tasks report the default logging driver whereas the historical manifest specifies `json-file`. Private values and other runtime drift were withheld, so that comparison is still incomplete.
 
 ## Certificate expiry alerting
 
 Prometheus exports `traefik_tls_certs_not_after{job="traefik3parity_proxy"}` for both ACME-managed certificate groups. The source rules in [`prometheus/traefik3-certificate-alerts.yml`](../prometheus/traefik3-certificate-alerts.yml) define a warning at <30 days remaining, an alert when the two expected expiry series go missing, and a critical alert when the Traefik 3 scrape target is unavailable.
 
-**Installed 2026-11-13:** Live Prometheus now mounts versioned Swarm rules config `task_rules_tls3_20261113T213540Z` at `/etc/prometheus/swarm_task.rules.yml`. The existing rules were preserved, `promtool` accepted the combined file, all three Traefik 3 alert rules were verified in Prometheus, and the new Traefik scrape target remained healthy. The previous task rules config `task_rules_inf04_20261111_v2` and private snapshot remain available for rollback. The GitHub source rule snippet is not a replacement for the entire deployed combined rules file. **Do not deploy the checked-in `swarmprom.yml` without first reconciling historical credentials/placeholders and all runtime service settings.**
+**Installed 2026-11-13:** Live Prometheus now mounts versioned Swarm rules config `task_rules_tls3_20261113T213540Z` at `/etc/prometheus/swarm_task.rules.yml`. The existing rules were preserved, `promtool` accepted the combined file, all three Traefik 3 alert rules were verified in Prometheus, and the new Traefik scrape target remained healthy. The previous task rules config `task_rules_inf04_20261111_v2` and private snapshot remain available for rollback. The GitHub source rule snippet is not a replacement for the entire deployed combined rules file. **Do not deploy the checked-in `swarmprom.yml` without first sourcing the correct private runtime values and checking every current service setting.**
 
 Before claiming alert delivery works, check the Prometheus-to-Alertmanager connection and independently test routing/notification delivery without disturbing real workloads. The expiry warnings can remain inactive until the threshold is reached.
 
