@@ -189,7 +189,7 @@ services:
       - --web.external-url=/cluster/prometheus/
       - --web.route-prefix=/
     environment:
-      JOBS: traefik:8080 mongodb-exporter:9216 redis-exporter:9121
+      JOBS: traefik:8080 traefik3parity_proxy:9100 mongodb-exporter:9216 redis-exporter:9121
     secrets:
      - basic_auth_users
     volumes:
