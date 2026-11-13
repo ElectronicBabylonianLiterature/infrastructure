@@ -40,6 +40,14 @@ ACME renews certificates that it issued itself. Add a monitored certificate-expi
 
 Swarmprom JOBS temporarily retains both traefik:8080 and traefik3parity_proxy:9100. It is expected for the old target to be down with Traefik 1.7 scaled to zero. Require the NEW production scrape target to be up. The checked-in swarmprom.yml includes historical credential placeholders, so do NOT redeploy it without reconciling live protected environment values.
 
+## Certificate expiry alerting
+
+Prometheus exports `traefik_tls_certs_not_after{job="traefik3parity_proxy"}` for both ACME-managed certificate groups. The source rules in [`prometheus/traefik3-certificate-alerts.yml`](../prometheus/traefik3-certificate-alerts.yml) define a warning at <30 days remaining, an alert when the two expected expiry series go missing, and a critical alert when the Traefik 3 scrape target is unavailable.
+
+The production Prometheus service still loads an **immutable external Swarm config** at `/etc/prometheus/swarm_task.rules.yml`, so adding that YAML file to GitHub does not activate it. Merge those rules into a versioned copy of the **actual live** Swarm rules, validate with `promtool check rules`, atomically attach the new config to `swarmprom_prometheus`, verify via `/api/v1/rules`, and preserve the previous config as rollback. This replaces only the Prometheus task, not the public Traefik task. Do not overwrite the existing OOM, exporter, memory and host monitoring rules with an outdated Git checkout.
+
+Before claiming alert delivery works, check the Prometheus-to-Alertmanager connection and independently test routing/notification delivery without disturbing real workloads. The expiry warnings can remain inactive until the threshold is reached.
+
 ## Full-ingress rollback (authorized incident only)
 
 1. Stop new proxy: docker service update --detach=true --replicas 0 traefik3parity_proxy

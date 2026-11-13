@@ -1,0 +1,29 @@
+# Merge the group below into the active swarm_task.rules.yml after reviewing it.
+# The production Prometheus instance does not currently load this file directly.
+groups:
+- name: ebl-traefik3-certificates
+  rules:
+    - alert: EBLTraefik3CertificateExpiringSoon
+      expr: (traefik_tls_certs_not_after{job="traefik3parity_proxy"} - time()) / 86400 < 30
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "eBL Traefik 3 certificate expires in fewer than 30 days"
+        description: 'Certificate {{ $labels.cn }} expires in {{ printf "%.1f" $value }} days; verify ACME renewal.'
+    - alert: EBLTraefik3CertificateMetricsMissing
+      expr: (count(traefik_tls_certs_not_after{job="traefik3parity_proxy"}) or vector(0)) < 2
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "eBL Traefik 3 certificate-expiry metrics missing"
+        description: "Expected two certificate-expiry metric series from the production proxy."
+    - alert: EBLTraefik3MetricsUnavailable
+      expr: up{job="traefik3parity_proxy"} == 0 or absent(up{job="traefik3parity_proxy"})
+      for: 3m
+      labels:
+        severity: critical
+      annotations:
+        summary: "eBL Traefik 3 Prometheus metrics unavailable"
+        description: "The active Traefik 3 scrape target is unhealthy or missing."
