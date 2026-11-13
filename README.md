@@ -3,6 +3,9 @@
 # Electronic Babylonian Library Infrastructure
 This repository describes the architecture of the Electronic Babylonian Library, a Dockerized cuneiform editing platform hosted on three VMs at the [﻿Leibniz Supercomputing Centre (Leibniz Rechenzentrum, LRZ)](https://www.lrz.de/english/) of the [﻿Bavarian Academy of Sciences and Humanities (Bayerische Akademie der Wissenschaften, BAdW)](https://badw.de/en/the-academy.html).
 
+> [!IMPORTANT]
+> **Traefik 3.7.18 production status (2026-11-13):** eBL now serves public HTTP/HTTPS through `traefik3parity_proxy`, not the legacy Traefik 1.7 service. The Traefik 1.7 deployment commands below are historical and **must not be rerun**: `traefik-consul_traefik` is intentionally kept at zero replicas for rollback while the Consul leader remains active. See [Traefik 3 production and rollback runbook](docs/traefik3-production-runbook.md) and the draft [Traefik 3 stack manifest](traefik3-production.yml). **Do not deploy the new manifest yet** until its entire specification is reconciled with the live Swarm service and its external configs are exported/reviewed. Never commit ACME storage, certificate private keys or raw service snapshots.
+
 ## Table of Contents
 - [﻿Table of Contents](#table-of-contents) 
 - [﻿1. General Architecture](#1-general-architecture) 
