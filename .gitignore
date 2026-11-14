@@ -1,1 +1,11 @@
 .DS_Store
+# Local credentials and private infrastructure evidence: never commit.
+.env
+.env.*
+!.env.example
+*.raw
+*.secret
+*.credentials
+*.key
+acme.json
+PRIVATE-DO-NOT-SHARE/

@@ -1,0 +1,87 @@
+version: '3.8'
+# Observed eBL Traefik 3 production topology on 2026-11-13.
+# REVIEW FIRST: compare every field with the active Swarm service before deploy.
+# Use stack name traefik3parity; do not deploy an additional proxy stack.
+services:
+  proxy:
+    image: traefik:v3.7.18@sha256:9c437ac4f09ce6f4980a8544902d3475fdf70a1a7c578729581d2535dfa7d635
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: bind
+        source: /home/farhanabdulla/ebl-traefik3-acme
+        target: /var/lib/traefik
+    networks:
+      - traefik-public
+      - traefik3-test
+    configs:
+      - source: traefik3stage4-static-20261113
+        target: /etc/traefik/traefik.yml
+      - source: traefik3acme-dynamic-20261113T205821Z
+        target: /etc/traefik/cutover-dynamic.json
+    secrets:
+      - basic_auth_users
+      # Legacy certificate secrets retained only for previous TLS rollback.
+      - traefik3stage3_badw_cert
+      - traefik3stage3_badw_key
+      - traefik3stage3_lmu_cert
+      - traefik3stage3_lmu_key
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == badwcai-ebl01
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: pause
+        monitor: 5s
+        max_failure_ratio: 0
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: pause
+        monitor: 15s
+        max_failure_ratio: 0
+
+networks:
+  traefik-public:
+    external: true
+  traefik3-test:
+    external: true
+
+configs:
+  traefik3stage4-static-20261113:
+    external: true
+  traefik3acme-dynamic-20261113T205821Z:
+    external: true
+
+secrets:
+  basic_auth_users:
+    external: true
+  traefik3stage3_badw_cert:
+    external: true
+  traefik3stage3_badw_key:
+    external: true
+  traefik3stage3_lmu_cert:
+    external: true
+  traefik3stage3_lmu_key:
+    external: true
