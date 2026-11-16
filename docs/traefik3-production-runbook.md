@@ -81,5 +81,5 @@ The [sanitized November 13 server evidence](traefik3-sanitized-evidence-20261113
 - [x] Install and verify three certificate-expiry/missing-metrics/target-down alert rules (2026-11-13)
 - [ ] Verify Alertmanager notification delivery with an authorized synthetic test
 - [ ] Independently verify authenticated admin routes and a real API workflow
-- [ ] Validate LAD-origin requests with Luis in Leipzig (deferred)
+- [x] LAD-origin eBL API requests: Luis in Leipzig reported the integration working normally (user-reported confirmation, 2026-11-16; raw request logs not included)
 - [ ] Retire older staging service and legacy scrape job only after dependencies are cleared
