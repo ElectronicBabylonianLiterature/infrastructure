@@ -4,7 +4,7 @@
 This repository describes the architecture of the Electronic Babylonian Library, a Dockerized cuneiform editing platform hosted on three VMs at the [﻿Leibniz Supercomputing Centre (Leibniz Rechenzentrum, LRZ)](https://www.lrz.de/english/) of the [﻿Bavarian Academy of Sciences and Humanities (Bayerische Akademie der Wissenschaften, BAdW)](https://badw.de/en/the-academy.html).
 
 > [!IMPORTANT]
-> **Traefik 3.7.18 production status (2026-11-13):** eBL now serves public HTTP/HTTPS through `traefik3parity_proxy`, not the legacy Traefik 1.7 service. The Traefik 1.7 deployment commands below are historical and **must not be rerun**: `traefik-consul_traefik` is intentionally kept at zero replicas for rollback while the Consul leader remains active. See [Traefik 3 production and rollback runbook](docs/traefik3-production-runbook.md) and the draft [Traefik 3 stack manifest](traefik3-production.yml). **Do not deploy the new manifest yet** until its entire specification is reconciled with the live Swarm service and its external configs are exported/reviewed. Never commit ACME storage, certificate private keys or raw service snapshots.
+> **Traefik 3 is the production reverse proxy.** The legacy Traefik 1.7 service is retained at zero replicas as an emergency fallback. Use the [Traefik 3 operations guide](docs/traefik3-production-runbook.md) for deployment prerequisites, TLS, monitoring, verification, and rollback. Do not deploy the legacy reverse proxy alongside Traefik 3 on ports 80/443.
 
 ## Table of Contents
 - [﻿Table of Contents](#table-of-contents) 
@@ -268,52 +268,17 @@ docker secret create ebl03.pem ./ebl03.pem
 We use a setup based on the (now deprecated) [﻿Docker Swarm Rocks](https://dockerswarm.rocks/).
 
 #### 4.5.1. Traefik and Consul
-See: [﻿Traefik Proxy with HTTPS](https://dockerswarm.rocks/traefik/) 
 
-The first stack will be the reverse proxy [﻿Traefik](https://traefik.io/), and [﻿Consul](https://www.consul.io/).
-For some services we want to force the swarm to put them on specific nodes, e.g., just the manager.
-For more fine-grained control, the recommended way is to use [﻿labels](https://docs.docker.com/engine/swarm/manage-nodes/#add-or-remove-label-metadata).
+Public traffic enters eBL through **Traefik 3.7.18**, managed by Docker Swarm. The production service is `traefik3parity_proxy` in the `traefik3parity` stack and listens on host ports 80 (HTTP and ACME HTTP-01) and 443 (HTTPS). It routes requests over the `traefik-public` overlay network to the application and administration services.
 
-Add the label `consul-host` to the first VM, badwcai-ebl01:
+The ingress service runs as one replica on the designated ingress node because host-mode ports cannot be published by multiple tasks on that node. The frontend and API have separate application replicas. For the current stack definition, see [traefik3-production.yml](traefik3-production.yml); for operating procedures, see the [Traefik 3 operations guide](docs/traefik3-production-runbook.md).
 
-```sh
-docker node update --label-add consul-host=true badwcai-ebl01
-```
-We need to create
+**TLS:** Traefik uses Let's Encrypt ACME, with persistent certificate storage on the ingress node. Certificates and account keys must be kept in restricted persistent storage and backed up securely; neither the ACME JSON file nor Docker secret material belongs in Git.
 
-- a Docker [﻿network](https://docs.docker.com/network/) ,
-- a Docker [﻿config](https://docs.docker.com/engine/swarm/configs/) , and
-- a Docker [﻿secret](https://docs.docker.com/engine/swarm/secrets/) ,
-all of which will then be used by the Traefik [﻿stack](https://docs.docker.com/engine/swarm/stack-deploy/).
-For the network, run:
+**Deployment:** The production stack refers to versioned external Docker Swarm configs. Before any redeployment, verify that those configs and secrets exist, review the actual running service specification, and follow the deployment checks in the operations guide. Do not run `docker stack deploy` from this repository without completing those checks.
 
-```sh
-docker network create --driver=overlay traefik-public
-```
-For the configuration, replace `<admin_email>` in traefik.toml with your email or a function email address
-(this will only be used on rare occasions to send you notifications). After that, add the config to Docker with:
+**Legacy support:** The `traefik-consul_traefik` service remains stopped at zero replicas for emergency rollback; its published port definitions remain in its service specification. The Consul leader is a separate service and remains available as required by legacy components. Do not scale up the old reverse proxy while Traefik 3 owns ports 80 and 443.
 
-```sh
-docker config create traefik-config ~/infrastructure/traefik.toml
-```
-For the Docker secret you need to first create a `basic_auth_users` file in a specific format. Run
-
-```sh
-# if htpasswd is missing, install it with: sudo apt-get install apache2-utils
-htpasswd -Bn admin > basic_auth_users
-```
-and enter the new password when prompted. These credentials will be used by Swarmpit and other services, and the file
-should look similar to this:
-
-```sh
-admin:$2y$05$YXO...
-```
-Create the Docker secret by running `docker secret create basic_auth_users ./basic_auth_users`.
-Next, create the stack `traefik-consul`:
-
-```sh
-docker stack deploy -c infrastructure/traefik-consul.yml traefik-consul
-```
 #### 4.5.2. Swarmpit
 See: [﻿Swarmpit web user interface for your Docker Swarm cluster](https://dockerswarm.rocks/swarmpit/).
 
@@ -548,12 +513,18 @@ Docker can be restarted from the commandline by running `sudo service docker res
 ### 5.6. Low diskspace
 Diskspace can be freed by removing old Docker images etc. See: [﻿https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127](https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127) 
 
-### 5.7. Expired certificate
-The certificates are handled automatically by [﻿Let's Encrypt](https://letsencrypt.org/) and `certbot` (managed in the Traefik configuration, cf.
-the [﻿Traefik docs](https://doc.traefik.io/traefik/v1.7/configuration/acme/)).
-In case if fails the website becomes unavailable via https once the certificate expires. It might be necessary to manually restart the
-`traefik-consul_traefik` service in swarmpit or via the server.
+### 5.7. Expired or invalid HTTPS certificate
 
+Production certificates are issued and renewed by Traefik 3's Let's Encrypt ACME resolver, using persistent storage on the ingress node. The Prometheus certificate-expiration alert rules provide advance warning; an Alertmanager connection alone does not guarantee notification delivery.
+
+When investigating a certificate problem:
+
+1. Verify certificate trust and hostname coverage from an independent external client.
+2. Check the `traefik3parity_proxy` service state, Traefik logs, and the Prometheus certificate-expiration metrics/alerts.
+3. Confirm that the ACME storage directory is still mounted and writable by Traefik, and that HTTP port 80 remains reachable for HTTP-01 validation.
+4. Follow the certificate recovery and rollback guidance in the [Traefik 3 operations guide](docs/traefik3-production-runbook.md).
+
+**Do not restart the legacy Traefik 1.7 service as a certificate-renewal procedure.** That service is reserved for a controlled full-ingress rollback after the new proxy has relinquished ports 80/443.
 
 <!-- eraser-additional-content -->
 ## Diagrams
