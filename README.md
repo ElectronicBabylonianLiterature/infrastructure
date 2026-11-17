@@ -67,9 +67,35 @@ Monitoring and basic maintenance is primarily done via [﻿Swarmpit](https://swa
 
 ![Swarmpit interface](img/swarmpit.png "")
 
-For more complex tasks you need to access the servers via ssh. For that, you need to activate the BAdW full-tunnel VPN and log into the server
-with your username and password. It is recommended to add the three nodes to your ssh config and set up ssh keys which greatly simplifies
-access which is especially convenient for setting up the database which requires you to perform steps on each machine individually.
+### Accessing the production VMs over SSH
+
+For host-level administration (Docker, filesystem, networking or recovery), use an **approved personal VM account** and connect to the **BAdW full-tunnel VPN** before SSH. This VPN is also required for access from networks where the VMs are otherwise unreachable; the original deployment required it even on the academy network. Do not rely on the public eBL website URL for SSH access.
+
+| SSH alias | VM hostname | IP address | Role |
+| --- | --- | --- | --- |
+| `caic1` | `badwcai-ebl01` | `138.246.225.199` | Docker Swarm manager / production ingress |
+| `caic2` | `badwcai-ebl02` | `138.246.225.201` | Swarm node |
+| `caic3` | `badwcai-ebl03` | `138.246.225.202` | Swarm node |
+
+From Windows PowerShell, macOS Terminal or a Linux shell, use OpenSSH. Substitute the username of your **existing authorized VM account**:
+
+```sh
+ssh <your-vm-username>@138.246.225.199
+ssh <your-vm-username>@138.246.225.201
+ssh <your-vm-username>@138.246.225.202
+```
+
+**Name resolution:** The short hostname `badwcai-ebl01` may not resolve on a Windows workstation (`Could not resolve hostname`). Use the IP above or a locally configured SSH alias instead. The full internal DNS names are `badwcai-ebl01.srv.mwn.de`, `badwcai-ebl02.srv.mwn.de` and `badwcai-ebl03.srv.mwn.de`, but do not assume your workstation's DNS can resolve them. The IP-based connection to VM1 was verified from Windows during the Traefik migration. Confirm changes to VM addresses with the system administrators rather than guessing.
+
+For a one-line file transfer from **Windows PowerShell**:
+
+```powershell
+scp "$env:USERPROFILE\Downloads\example.txt" "<your-vm-username>@138.246.225.199:/home/<your-vm-username>/"
+```
+
+Use a single line in PowerShell; a trailing Linux-style backslash is **not** a PowerShell continuation character. When a transfer fails, first confirm that SSH works with the same VPN connection, destination IP and account. Use an SSH key where authorized and do not share private keys or account passwords. The optional `caic1`/`caic2`/`caic3` aliases are documented in [SSH key setup](#422-set-up-ssh-keys).
+
+
 
 Additional information and statistics about the system are displayed in our Grafana instance [﻿here](https://www.ebl.badw.de/cluster/grafana/). Traefik also comes with a UI that can be accessed at [﻿https://www.ebl.badw.de/cluster/traefik/](https://www.ebl.badw.de/cluster/traefik/). Our private Docker registry has a basic UI, too.
 
@@ -89,9 +115,7 @@ this repository should be updated accordingly. The local commands are also the M
 systems but may differ slightly.
 
 ### 4.1. Ordering VMs and DNS setup
-We ordered three VMs directly at [﻿https://vm.lrz.de/](https://vm.lrz.de/). Once the machines are ready you receive an email with the default user and
-password. Use the IP and default credentials from the email to access the VM (`ssh defaultusername@xxx.xxx.xxx.xxx`, enter password when prompted)
-and change the default password. Be sure to store this and all other passwords safely, e.g., in a password manager like [﻿KeePassX](https://www.keepassx.org/).
+The VMs were provisioned through [LRZ VM management](https://vm.lrz.de/). **This paragraph concerns initial VM provisioning, not routine access to existing production machines.** For a newly issued VM, LRZ provides the initial account and access details through its approved channel; change any temporary credentials according to institutional policy and store them securely. For existing eBL VMs, use the [production SSH access procedure](#accessing-the-production-vms-over-ssh) and your personal authorized account. Do not try the original provisioning credentials or create a new account simply to perform normal maintenance.
 
 Masterusers can request configuration changes (like RAM or storage upgrades) by opening a ticket at the [﻿Service Desk](https://servicedesk.lrz.de/).
 
@@ -104,10 +128,9 @@ The setup steps must be performed **on each VM individually**.
 For most of the commands you will need `sudo`, but once Docker is set up and running the `docker` commands don't require it.
 
 #### 4.2.1. Set up users
-Activate the BAdW **full-tunnel** VPN. This is necessary even from within the on-site academy network.
+**Initial provisioning only:** Connect through the BAdW full-tunnel VPN and use the temporary administrator credentials supplied for a newly provisioned VM by LRZ. For existing production machines, follow [production SSH access](#accessing-the-production-vms-over-ssh) with your approved personal account instead. Creating users or changing access permissions on an existing VM requires administrator authorization.
 
-Using the default sudo user and password provided by LRZ, ssh into the VM. Create (at least) two users, one for yourself
-and the shared `ebladmin` user, and add them to the sudoer and ssh groups, e.g.:
+For a new VM, create appropriately authorized administrator users according to institutional policy. The historical setup included a shared `ebladmin` account and used the following group commands:
 
 ```sh
 adduser ebladmin
@@ -117,11 +140,9 @@ usermod -aG ssh-login ebladmin
 You can then switch to the new user with `su ebladmin`.
 
 #### 4.2.2. Set up ssh keys
-This step is optional (but you will soon regret it if you skip it): Set up an ssh key for your user(s) by following these steps
-(please find more details online if needed):
+**Recommended for authorized VM accounts:** Set up SSH public-key authentication instead of repeatedly entering a password. Never copy the private key to the server or commit it to this repository. Your SSH key and account must be authorized for each VM you access.
 
-**On your local machine:** Either create a new ssh key pair or use an existing one. Create or edit your .ssh/config file and add the following
-contents. You may also need to add a line `IdentityFile ~/.ssh/my_id_rsa` to each entry if you're using a custom private key name/path.
+On Windows, edit `$env:USERPROFILE\.ssh\config` (the OpenSSH config file); on macOS/Linux, edit `~/.ssh/config`. Add the optional aliases below, replacing `your_vm_username` with your personal VM account. Use `IdentityFile ~/.ssh/id_ed25519` (or your actual private-key file) if the identity is not selected automatically. The aliases are local shortcuts; the IP addresses do not depend on short-hostname resolution.
 
 ```sh
 # CAIC eBL VM1
@@ -142,11 +163,9 @@ Host caic3
   Port 22
   User your_vm_username
 ```
-**On the VM:** Add the contents of your **public** key file you created locally (e.g., ~/.ssh/id_rsa.pub) to the ~/.ssh/authorized_keys
-file on the VM (create the file if it doesn't exist yet). A quick and easy way to do this is to open the file (`nano ~/.ssh/authorized_keys`) and paste the key contents into it.
+**On each VM (with approval):** Add only the **public** SSH key (for example, the contents of `~/.ssh/id_ed25519.pub`) to your own account's `~/.ssh/authorized_keys`. Restrict the `~/.ssh` directory to mode `0700` and `authorized_keys` to `0600`. Never overwrite other administrators' existing authorized keys or add keys to a shared account without approval.
 
-If everything is set up correctly you should now be able to access each VM by running, e.g., `ssh caic1` from your commandline. The configuration is also automatically discovered
-by Visual Studio Code and other IDEs, allowing you to conveniently connect to the servers from within your IDE.
+Reconnect with `ssh caic1`, `ssh caic2` or `ssh caic3` while the BAdW VPN is connected. Visual Studio Code Remote SSH can use the same local OpenSSH aliases. If the short hostname fails, use the IP-backed alias or the explicit IP-based command shown above.
 
 #### 4.2.3. Install Docker
 - [﻿Install Docker Engine - Community from Docker's repositories](https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository) 
