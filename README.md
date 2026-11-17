@@ -9,7 +9,8 @@ This repository describes the architecture of the Electronic Babylonian Library,
 ## Table of Contents
 - [﻿Table of Contents](#table-of-contents) 
 - [﻿1. General Architecture](#1-general-architecture) 
-- [﻿2. Monitoring and Maintenance](#2-monitoring-and-maintenance) 
+- [﻿2. Monitoring and Maintenance](#2-monitoring-and-maintenance)
+    - [Accessing the production VMs over SSH](#accessing-the-production-vms-over-ssh) 
 - [﻿3. Backup copies](#3-backup-copies) 
 - [﻿4. Setup](#4-setup) 
     - [﻿4.1. Ordering VMs and DNS setup](#41-ordering-vms-and-dns-setup) 
@@ -95,8 +96,6 @@ scp "$env:USERPROFILE\Downloads\example.txt" "<your-vm-username>@138.246.225.199
 
 Use a single line in PowerShell; a trailing Linux-style backslash is **not** a PowerShell continuation character. When a transfer fails, first confirm that SSH works with the same VPN connection, destination IP and account. Use an SSH key where authorized and do not share private keys or account passwords. The optional `caic1`/`caic2`/`caic3` aliases are documented in [SSH key setup](#422-set-up-ssh-keys).
 
-
-
 Additional information and statistics about the system are displayed in our Grafana instance [﻿here](https://www.ebl.badw.de/cluster/grafana/). Traefik also comes with a UI that can be accessed at [﻿https://www.ebl.badw.de/cluster/traefik/](https://www.ebl.badw.de/cluster/traefik/). Our private Docker registry has a basic UI, too.
 
 ## 3. Backup copies
@@ -108,11 +107,7 @@ of sync.
 ## 4. Setup
 Knowledge about server infrastructure and Docker concepts (containers, images, networks, configs, secrets, etc.) is necessary.
 
-The steps describe the state of the system right after the migration to new VMs in July 2024. We cannot
-guarantee that the configuration reflects the latest state of the setup (though we do our best to keep everything up to date). The most
-recently deployed versions of each part of the system can be seen in the Swarmpit UI. Whenever changes are made via Swarmpit, the corresponding file in
-this repository should be updated accordingly. The local commands are also the MacOS variants which should mostly work on other operating
-systems but may differ slightly.
+The following setup history describes the system after the July 2024 VM migration. Some provisioning instructions are historical and must not be used as routine maintenance procedures. Follow the [current production SSH access procedure](#accessing-the-production-vms-over-ssh) for existing machines and the [Traefik 3 operations guide](docs/traefik3-production-runbook.md) for ingress changes. Review the live Swarm configuration before redeployment, and keep repository manifests synchronized with authorized infrastructure changes. Command syntax can differ between Unix shells and Windows PowerShell; platform-specific examples are labeled.
 
 ### 4.1. Ordering VMs and DNS setup
 The VMs were provisioned through [LRZ VM management](https://vm.lrz.de/). **This paragraph concerns initial VM provisioning, not routine access to existing production machines.** For a newly issued VM, LRZ provides the initial account and access details through its approved channel; change any temporary credentials according to institutional policy and store them securely. For existing eBL VMs, use the [production SSH access procedure](#accessing-the-production-vms-over-ssh) and your personal authorized account. Do not try the original provisioning credentials or create a new account simply to perform normal maintenance.
