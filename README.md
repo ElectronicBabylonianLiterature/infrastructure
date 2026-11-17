@@ -40,7 +40,7 @@ This repository describes the architecture of the Electronic Babylonian Library,
     - [﻿5.1. Consul fails to elect a leader](#51-consul-fails-to-elect-a-leader) 
     - [﻿5.2. Redeployment fails in Swarmpit UI](#52-redeployment-fails-in-swarmpit-ui) 
     - [﻿5.3. Forgotten Grafana password](#53-forgotten-grafana-password) 
-    - [﻿5.4. "invalid memory address or nil pointer dereference" from mongodb_exporter](#54-invalid-memory-address-or-nil-pointer-dereference-from-mongodb_exporter) 
+    - [5.4. MongoDB exporter errors](#54-mongodb-exporter-errors) 
     - [﻿5.5. The cluster becomes unresponsive](#55-the-cluster-becomes-unresponsive) 
     - [﻿5.6. Low diskspace](#56-low-diskspace) 
     - [﻿5.7. Expired or invalid HTTPS certificate](#57-expired-or-invalid-https-certificate) 
