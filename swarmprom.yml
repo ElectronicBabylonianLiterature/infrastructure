@@ -7,7 +7,7 @@ services:
       - --storage.path=/alertmanager
     environment:
       SLACK_CHANNEL: cluster_alerts
-      SLACK_URL: https://hooks.slack.com/services/<slack_token>
+      SLACK_URL: ${EBL_ALERTMANAGER_SLACK_URL:?Provide private Alertmanager Slack URL}
       SLACK_USER: alertmanager
     secrets:
      - basic_auth_users
@@ -86,7 +86,7 @@ services:
   grafana:
     image: stefanprodan/swarmprom-grafana:5.3.4
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: <password>
+      GF_SECURITY_ADMIN_PASSWORD: ${EBL_GRAFANA_ADMIN_PASSWORD:?Provide private Grafana admin password}
       GF_SECURITY_ADMIN_USER: admin
       GF_USERS_ALLOW_SIGN_UP: 'false'
       GF_SERVER_ROOT_URL: https://ebl.badw.de/cluster/grafana/
@@ -139,7 +139,7 @@ services:
     image: percona/mongodb_exporter:0.37.0
     command:
      - --mongodb.direct-connect=false
-     - --mongodb.uri=mongodb://mongodb_exporter:<top_secret_password>@badwcai-ebl01.srv.mwn.de:27017,badwcai-ebl02.srv.mwn.de:27018,badwcai-ebl03.srv.mwn.de:27019/admin?tls=true&tlsCAFile=/run/secrets/mongoCA.crt&tlsInsecure=true
+     - --mongodb.uri=${EBL_MONGODB_EXPORTER_URI:?Provide private MongoDB exporter URI}
      - --collector.diagnosticdata
      - --collector.replicasetstatus
     networks:
@@ -189,7 +189,7 @@ services:
       - --web.external-url=/cluster/prometheus/
       - --web.route-prefix=/
     environment:
-      JOBS: traefik:8080 mongodb-exporter:9216 redis-exporter:9121
+      JOBS: traefik:8080 traefik3parity_proxy:9100 mongodb-exporter:9216 redis-exporter:9121
     secrets:
      - basic_auth_users
     volumes:
@@ -202,7 +202,7 @@ services:
       source: node_rules
       target: /etc/prometheus/swarm_node.rules.yml
      -
-      source: task_rules_inf04_20261111_v2
+      source: task_rules_tls3_20261113T213540Z
       target: /etc/prometheus/swarm_task.rules.yml
     logging:
       driver: json-file
@@ -270,7 +270,7 @@ configs:
     external: true
   node_rules:
     external: true
-  task_rules_inf04_20261111_v2:
+  task_rules_tls3_20261113T213540Z:
     external: true
 secrets:
   basic_auth_users:

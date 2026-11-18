@@ -72,6 +72,8 @@ services:
         max-file: '3'
         max-size: 10m
     deploy:
+      # Preserve original proxy for rollback, but never start it on redeploy.
+      replicas: 0
       labels:
         traefik.docker.network: traefik-public
         traefik.enable: 'true'
