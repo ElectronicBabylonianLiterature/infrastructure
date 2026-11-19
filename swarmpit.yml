@@ -1,3 +1,6 @@
+# HISTORICAL / INCOMPLETE REFERENCE ONLY (checked 2026-11-19).
+# The real VM/Swarmpit-managed stack also runs swarmpit_influxdb; CouchDB live placement/settings differ.
+# Do not deploy this example to the running cluster or replace live data volumes.
 version: '3.3'
 services:
   agent:

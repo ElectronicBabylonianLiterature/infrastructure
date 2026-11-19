@@ -1,3 +1,5 @@
+# DOCUMENTATION REFERENCE ONLY: live production Traefik 3 configuration is managed on VMs/Swarmpit.
+# This file must never be used to replace running public ingress without an approved separate procedure.
 version: '3.8'
 # Observed eBL Traefik 3 production topology on 2026-11-13.
 # REVIEW FIRST: compare every field with the active Swarm service before deploy.

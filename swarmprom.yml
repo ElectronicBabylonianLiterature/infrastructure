@@ -1,3 +1,6 @@
+# HISTORICAL REFERENCE ONLY: monitoring runs from VM/Swarmpit-managed configuration.
+# This file is not a complete authoritative stack or a source of credential values.
+# Prometheus targets, rules and alert delivery need runtime verification before any actual change.
 version: '3.3'
 services:
   alertmanager:
@@ -76,13 +79,6 @@ services:
           memory: 64M
         limits:
           memory: 128M
-  redis-exporter:
-    image: bitnami/redis-exporter:1
-    environment:
-      REDIS_ADDR: redis://redis:6379
-    networks:
-     - net
-     - monitoring
   grafana:
     image: stefanprodan/swarmprom-grafana:5.3.4
     environment:

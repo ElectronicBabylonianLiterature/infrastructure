@@ -1,3 +1,5 @@
+# DOCUMENTATION REFERENCE ONLY; live MongoDB services are managed on VMs/Swarmpit.
+# Three running tasks do not establish replica-set health or make this a tested recovery recipe.
 version: '3.3'
 services:
   mongo1:

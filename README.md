@@ -1,12 +1,17 @@
-<p><a target="_blank" href="https://app.eraser.io/workspace/aGds6s7Uqq35ZqoSOch1" id="edit-in-eraser-github-link"><img alt="Edit in Eraser" src="https://firebasestorage.googleapis.com/v0/b/second-petal-295822.appspot.com/o/images%2Fgithub%2FOpen%20in%20Eraser.svg?alt=media&amp;token=968381c8-a7e7-472a-8ed6-4a6626da5501"></a></p>
 
 # Electronic Babylonian Library Infrastructure
-This repository describes the architecture of the Electronic Babylonian Library, a Dockerized cuneiform editing platform hosted on three VMs at the [﻿Leibniz Supercomputing Centre (Leibniz Rechenzentrum, LRZ)](https://www.lrz.de/english/) of the [﻿Bavarian Academy of Sciences and Humanities (Bayerische Akademie der Wissenschaften, BAdW)](https://badw.de/en/the-academy.html).
+This repository documents the architecture and operation of eBL, hosted on three LRZ VMs. It is a **documentation and historical-reference repository**: production configurations are maintained on the VMs and through Swarmpit, not deployed from GitHub.
+
+> [!IMPORTANT]
+> **Never deploy these YAML reference files directly against production.** They are incomplete or historical and can differ from the live Swarm state. For approved operations, use the [day-to-day operations guide](docs/day-to-day-operations.md) and the [verified November 2026 inventory](docs/production-inventory-2026-11-19.md).
 
 > [!IMPORTANT]
 > **Traefik 3 is the production reverse proxy.** The legacy Traefik 1.7 service is retained at zero replicas as an emergency fallback. Use the [Traefik 3 operations guide](docs/traefik3-production-runbook.md) for deployment prerequisites, TLS, monitoring, verification, and rollback. Do not deploy the legacy reverse proxy alongside Traefik 3 on ports 80/443.
 
 ## Table of Contents
+- [Verified production inventory — 19 November 2026](docs/production-inventory-2026-11-19.md)
+- [Day-to-day operations and handover](docs/day-to-day-operations.md)
+- [Traefik 3 production runbook](docs/traefik3-production-runbook.md)
 - [﻿Table of Contents](#table-of-contents) 
 - [﻿1. General Architecture](#1-general-architecture) 
 - [﻿2. Monitoring and Maintenance](#2-monitoring-and-maintenance)
@@ -55,14 +60,32 @@ MongoDB uses a three-member replica set across the VMs. The primary handles writ
 
 Networking is handled by Traefik, a reverse proxy that allows our Docker services to talk to each other and to become accessible from outside the server.
 
-![image.png](/.eraser/aGds6s7Uqq35ZqoSOch1___8rEEI9hk1jV4GniI7pAK1HIhMOW2___OC75HlExYQ7enBwHe-bL0.png "image.png")
+**Verified topology, 19 November 2026:** Running task placements are a snapshot and may change. Three API/frontend replicas do not guarantee one per VM.
+
+```mermaid
+flowchart LR
+  user["Four public HTTPS hostnames"] --> tr["Traefik 3 ingress · VM1"]
+  tr --> fe["Frontend · 3 replicas<br/>VM1: 1 / VM2: 2"]
+  tr --> api["API · 3 replicas<br/>VM1: 1 / VM2: 2"]
+  api --> md["MongoDB · 3 members<br/>one per VM"]
+  api --> redis["Redis · VM1"]
+  api --> ai["AI API · VM2"]
+  registry["Private registry · VM1"] -. images .-> fe
+  registry -. images .-> api
+  swarmpit["Swarmpit · VM1<br/>CouchDB + InfluxDB · VM2"] -. operations .-> tr
+  monitor["Prometheus + Grafana + Alertmanager · VM1"] -. monitors .-> tr
+```
+
+The active sinkhole is on VM2; the effectiveness of its Traefik 3 routing is not established by this inventory. See the [complete dated service inventory](docs/production-inventory-2026-11-19.md).
 
 
 
 ## 2. Monitoring and Maintenance
 Monitoring and basic maintenance is primarily done via [﻿Swarmpit](https://swarmpit.io/). Our instance is accessible at [﻿https://www.ebl.lmu.de/cluster/swarmpit/](https://www.ebl.lmu.de/cluster/swarmpit/) and allows you to check the system status, view logs, and (re-)deploy services.
 
-![Swarmpit interface](img/swarmpit.png "")
+![Swarmpit interface — historical screenshot](img/swarmpit.png "")
+
+The screenshot is historical. For normal VM/Swarmpit-managed operations, use the [operations guide](docs/day-to-day-operations.md); the checked-in stack YAML is not a deployment source.
 
 ### Accessing the production VMs over SSH
 
@@ -92,18 +115,20 @@ scp "$env:USERPROFILE\Downloads\example.txt" "<your-vm-username>@138.246.225.199
 
 Use a single line in PowerShell; a trailing Linux-style backslash is **not** a PowerShell continuation character. When a transfer fails, first confirm that SSH works with the same VPN connection, destination IP and account. Use an SSH key where authorized and do not share private keys or account passwords. The optional `caic1`/`caic2`/`caic3` aliases are documented in [SSH key setup](#422-set-up-ssh-keys).
 
-Additional information and statistics about the system are displayed in our Grafana instance [﻿here](https://www.ebl.badw.de/cluster/grafana/). Traefik also comes with a UI that can be accessed at [﻿https://www.ebl.badw.de/cluster/traefik/](https://www.ebl.badw.de/cluster/traefik/). Our private Docker registry has a basic UI, too.
+Grafana, Traefik and registry administrative UIs are available to authorized maintainers. Their current authentication and end-to-end access behavior were **not** tested in this inventory; do not assume a link proves access.
+
+**Network boundary:** MongoDB publishes 27017–27019/tcp, registry 5000/tcp and registry UI 8000/tcp through Swarm ingress. Docker metrics listen on port 9323 on all VM interfaces. These observations **do not prove Internet exposure**; UFW inspection failed or lacked permission on every VM, and LRZ perimeter filtering remains unverified. See the [verification ledger](docs/production-inventory-2026-11-19.md#verification-ledger).
 
 ## 3. Backup copies
-6 daily backup images of the servers are made, at 02:20, 06:20, 10:20, 14:20, 18:20 and 22:20 hrs. The images are kept for 14 days. The images
-can be restored by the LRZ on short notice by opening a ticket on their [﻿Service Desk](https://servicedesk.lrz.de/). If it is necessary to
-restore a backup copy, the images of all nodes of the Replica Set should be restored, not just one of the nodes, as otherwise they will be out
-of sync.
+
+**The LRZ backup provision has been verified by the eBL operator (19 November 2026).** The institute's previously documented schedule records six daily VM snapshots (02:20, 06:20, 10:20, 14:20, 18:20 and 22:20) retained for 14 days. The read-only VM audit cannot inspect LRZ's hypervisor backup policy. Authorized restoration is coordinated through the [LRZ Service Desk](https://servicedesk.lrz.de/).
+
+A tested restore and MongoDB-consistent recovery procedure were **not** established by this audit. Decide the safe replica-set recovery strategy with LRZ and the database owner before restoring any member; do not unconditionally restore one node or all nodes.
 
 ## 4. Setup
 Knowledge about server infrastructure and Docker concepts (containers, images, networks, configs, secrets, etc.) is necessary.
 
-The following setup history describes the system after the July 2024 VM migration. Some provisioning instructions are historical and must not be used as routine maintenance procedures. Follow the [current production SSH access procedure](#accessing-the-production-vms-over-ssh) for existing machines and the [Traefik 3 operations guide](docs/traefik3-production-runbook.md) for ingress changes. Review the live Swarm configuration before redeployment, and keep repository manifests synchronized with authorized infrastructure changes. Command syntax can differ between Unix shells and Windows PowerShell; platform-specific examples are labeled.
+**All subsections below are historical provisioning/reference material, not live production deployment instructions.** Configurations are maintained on the VMs and in Swarmpit. Do not execute setup, initialization, certificate creation or `docker stack deploy` examples against the running cluster. Use the current [SSH procedure](#accessing-the-production-vms-over-ssh), [operations guide](docs/day-to-day-operations.md) and [Traefik 3 runbook](docs/traefik3-production-runbook.md) for authorized maintenance.
 
 ### 4.1. Ordering VMs and DNS setup
 The VMs were provisioned through [LRZ VM management](https://vm.lrz.de/). **This paragraph concerns initial VM provisioning, not routine access to existing production machines.** For a newly issued VM, LRZ provides the initial account and access details through its approved channel; change any temporary credentials according to institutional policy and store them securely. For existing eBL VMs, use the [production SSH access procedure](#accessing-the-production-vms-over-ssh) and your personal authorized account. Do not try the original provisioning credentials or create a new account simply to perform normal maintenance.
@@ -209,7 +234,7 @@ It is recommended to download all of it onto the first VM. The following command
 (e.g., `cd ~ && git clone https://github.com/ElectronicBabylonianLiterature/infrastructure.git`).
 
 #### 4.3.1. Initialize the swarm
-On the first VM, [﻿create a new swarm](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/). This turns
+**Historical new-cluster instructions only; do not initialize the existing production Swarm.** On the first VM, [﻿create a new swarm](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/). This turns
 the first VM into the manager node of the swarm. It will output a command for joining the swarm which has to be run on
 each of the two other VMs which will make them worker nodes. If you need to display the join command again, run
 `docker swarm join-token worker` on the manager. Check the status of the swarm by running the command below on the manager node:
@@ -219,9 +244,9 @@ $ docker node ls
 ID                            HOSTNAME        STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
 z2hbdfjkyqn3z1b8kmndm7exp *   badwcai-ebl01   Ready     Active         Leader           26.1.4
 3bzj3ocpoqy1vvm07l56n7ef0     badwcai-ebl02   Ready     Active                          26.1.4
-k5vo2xli9y8b4q9jcirx6byll     badwcai-ebl03   Ready     Active                          26.1.4
+k5vo2xli9y8b4q9jcirx6byll     badwcai-ebl03   Ready     Active                          26.1.3
 ```
-Unless specified otherwise, the commands below have to be run (only) on the manager node, i.e., the first VM caic1/badwcai-ebl01.
+The node list is a **19 November 2026 snapshot**, not a live guarantee. VM1 is the only manager; check `docker node ls` for the current state.
 
 #### 4.3.2. Optional: Test Swarmpit
 
@@ -261,14 +286,10 @@ The ingress service runs as one replica on the designated ingress node because h
 **Legacy support:** The `traefik-consul_traefik` service remains stopped at zero replicas for emergency rollback; its published port definitions remain in its service specification. The Consul leader is a separate service and remains available as required by legacy components. Do not scale up the old reverse proxy while Traefik 3 owns ports 80 and 443.
 
 #### 4.5.2. Swarmpit
-See: [﻿Swarmpit web user interface for your Docker Swarm cluster](https://dockerswarm.rocks/swarmpit/).
 
-The swarmpit stack does not require any prior set up and can be directly deployed with:
+Swarmpit is already running behind Traefik 3. The 19 November inventory found **four** services: `swarmpit_app` on VM1, global `swarmpit_agent` on all VMs, and both `swarmpit_db` (CouchDB) and `swarmpit_influxdb` (InfluxDB) on VM2. Their storage uses named local volumes; preserve these during recovery.
 
-```sh
-docker stack deploy -c swarmpit.yml swarmpit
-```
-The UI should now be accessible at [﻿https://www.ebl.badw.de/cluster/swarmpit/](https://www.ebl.badw.de/cluster/swarmpit/).
+The checked-in [swarmpit.yml](swarmpit.yml) is a **historical, incomplete reference**: it omits InfluxDB, and CouchDB placement/resources differ from production. Do not deploy it as a replacement. For safe inspection and approved operational changes, use [Swarmpit](https://www.ebl.badw.de/cluster/swarmpit/) and the [operations guide](docs/day-to-day-operations.md).
 
 #### 4.5.3. Swarmprom
 
@@ -279,6 +300,8 @@ The [swarmprom.yml](swarmprom.yml) manifest includes the production `traefik3par
 **Private deployment inputs:** Never put passwords, Slack webhooks or MongoDB connection credentials directly into a commit. The monitoring manifest requires `EBL_ALERTMANAGER_SLACK_URL`, `EBL_GRAFANA_ADMIN_PASSWORD` and `EBL_MONGODB_EXPORTER_URI`, supplied from an approved restricted credential store. Review the **whole rendered stack** against the running services before any redeployment. Do not deploy placeholder values, replace live service settings with historical defaults, or redeploy the entire stack just to change one alert rule.
 
 See the [Traefik 3 operations guide](docs/traefik3-production-runbook.md) for metrics, certificate renewal alerts, validation and rollback. A healthy Alertmanager connection does not on its own prove notification delivery.
+
+On 19 November 2026, Prometheus, Grafana and Alertmanager were on VM1; MongoDB and Redis exporters and Karma on VM2; node-exporter, cAdvisor and dockerd-exporter on all three VMs. The audit confirmed service/config *names*, not effective scrape success or notification delivery. The reference `swarmprom.yml` does not replace the private live configuration.
 
 The Grafana UI is at [https://www.ebl.badw.de/cluster/grafana/](https://www.ebl.badw.de/cluster/grafana/).
 
@@ -319,7 +342,7 @@ For TLS or election failures, first examine logs, certificate chains/SANs/expira
 
 ### 4.8. Monitoring
 
-The MongoDB exporter is deployed through Swarmprom as `percona/mongodb_exporter:0.37.0`. The Prometheus job scrapes the exporter on port `9216`. When metrics are missing, verify exporter service health and logs, its MongoDB/TLS connectivity and the actual Prometheus target errors.
+The MongoDB exporter runs as `percona/mongodb_exporter:0.37.0`. The reference Prometheus job uses port `9216`. The 19 November audit did **not** verify actual scrapes or MongoDB metrics, so these require separate authorized checks.
 
 The dedicated MongoDB exporter account requires monitoring permissions. Historical provisioning used `clusterMonitor` on `admin` and read access to `local`. These are **not instructions to recreate production users**. Preserve the current approved credentials and reference them through the private `EBL_MONGODB_EXPORTER_URI` deployment input; do not paste them into `swarmprom.yml`.
 
@@ -327,79 +350,38 @@ You can now import the [﻿MongoDB dashboard](https://grafana.com/grafana/dashbo
 prefix from `mongodb_` to `mongodb_mongod_`.
 
 ### 4.9. Docker registry
-![Registry UI](img/registry_ui.png "")
 
-The private Docker registry is were the eBL api and frontend apps will be pushed by GitHub CI and then pulled by our stacks when being redeployed after updates.
-It requires a separate set of credentials and configs.
+The running registry is `registry_registry1` on VM1 (persistent `registry_registry1` volume), with `registry_ui` on VM2 (persistent `registry_registry-ui` volume). GitHub workflows publish application images, but production updates are coordinated separately through the VMs/Swarmpit. The ingress-published TCP ports 5000 and 8000 require authorized network-filter verification; their publication is not proof of external reachability.
 
-**For the configurations:** [﻿Generate a UUID](https://www.uuidgenerator.net/) and replace the `Bearer`/`event_listener_token` placeholders in the registry_config.yml
-and docker-registry-ui_config.yml. It just has to be something difficult to guess that matches between the two configuration files. Create the configs with:
-
-```sh
-docker config create registry_config ~/infrastructure/registry_config.yml
-docker config create docker-registry-ui_config ~/infrastructure/docker-registry-ui_config.yml
-```
-**For the secrets:** Similar to `basic_auth_users` above, create a file `registry_htpasswd` by running `htpasswd -Bn admin > registry_htpasswd`
-and entering a new password. We also need a `github` user that is used by GitHub CI to authenticate when pushing to the registry.
-The credentials must match the secrets set up in GitHub and passed to the CI YAML both in the ebl-api, ebl-frontend, and the ebl-ai-api.
-This time, run `htpasswd -Bn github` and append the output to the `registry_htpasswd` file so it has two sets of credentials, one per line.
-
-The admin password also needs to be stored as clear-text secret, so paste the password into a file `docker-registry-ui_admin_password`.
-
-Now, create the secrets:
-
-```sh
-docker secret create docker-registry-ui_admin_password ./docker-registry-ui_admin_password
-docker secret create registry_htpasswd ./registry_htpasswd
-```
-And deploy the registry stack:
-
-```sh
-docker stack deploy -c ~/infrastructure/registry.yml registry
-```
-The registry comes with a basic UI that should now be accessible at [﻿https://www.ebl.badw.de/cluster/registry-ui/](https://www.ebl.badw.de/cluster/registry-ui/) (after login). If GitHub workflows
-are set up to push to this registry, visit the ebl-api and ebl-frontend repos and manually trigger a CI run for each. The images should then be visible in the UI.
-
-Before pulling from the registry it may be necessary to run `docker login ebl.badw.de` and logging in using the credentials we just set. Otherwise, Docker may
-be unable to pull, showing `No such image`. It may even be necessary to login twice, once with and once without `sudo`, and on all VMs individually, and
-pass the `--with-registry-auth` flag when `deploy`ing.
+The [registry stack](registry.yml), [registry config](registry_config.yml), and [UI config](docker-registry-ui_config.yml) are **historical references**, not a current deployment or credential source. Do not create/recreate production secrets, change purge policy, or deploy these examples during routine maintenance. Verify actual registry login, tag retention and restore process with the responsible operators.
 
 ### 4.10. eBL application
-In ebl.yml, replace the placeholders in `services.api.environment` with the real keys/credentials, and deploy the stack:
 
-```sh
-docker stack deploy -c infrastructure/ebl.yml ebl --with-registry-auth
-```
-If it fails with `No such image`, make sure the image is in the registry and be sure to `docker login` as described above. If it fails with another error (`Non-zero exit`),
-it means the container was successfully pulled but the app failed to start for some other reason, e.g., incorrect environment variables or a wrong command.
+At the 19 November audit, the live `ebl` stack contained `ebl_api` (3/3), `ebl_frontend` (3/3), `ebl_ai-api` (1/1), `ebl_redis` (1/1) and `ebl_sinkhole` (1/1). The API and frontend each had **one task on VM1 and two on VM2**, none on VM3. This is task scheduling at one point in time, not a placement guarantee. No application-level Swarm health checks were declared for these apps.
 
-Note that the environment variables for the frontend are configured in [﻿GitHub actions](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml)
-and passed to the Docker image from there.
+Two additional historical API services, `ebl-api_api` and `ebl_api_api`, were each at 0/0. Their intended retirement is not established; do not delete them without an owner decision. No active Inception service was observed, although named Inception volumes remain on VM3.
 
-The `ai-api` service is part of the currently deployed eBL application and was running in the last verified Swarm inventory. Do not disable it without checking `EBL_AI_API` and application dependencies. The [ebl-ai-api repository](https://github.com/ElectronicBabylonianLiterature/ebl-ai-api) contains the AI service; the Redis exporter and Prometheus job support its monitoring.
-
-**Before an application stack redeploy:** [ebl.yml](ebl.yml) still contains historical Traefik 1.7 routing/rate-limit labels. Traefik 3 currently uses its own dynamic file-provider configuration, so do not treat those labels as the authoritative production routing setup. Reconcile the live service with the manifest and the [Traefik 3 operations guide](docs/traefik3-production-runbook.md).
+The checked-in [ebl.yml](ebl.yml) lacks the sinkhole and retains Traefik 1.x labels and placeholder settings. It is **not the production deployment source**. The effective Traefik 3 routes and controls reside in the private dynamic configuration, not old labels. See the [operations guide](docs/day-to-day-operations.md). Frontend build-time configuration is handled by its [GitHub workflow](https://github.com/ElectronicBabylonianLiterature/ebl-frontend/blob/master/.github/workflows/main.yml).
 
 ### 4.11. Mongosync
-The script for populating the development db `ebldev` is developed in a dedicated repository at [﻿https://github.com/ElectronicBabylonianLiterature/mongosync](https://github.com/ElectronicBabylonianLiterature/mongosync).
-It requires `mongosync_user` and `mongosync_password` Docker secrets matching the credentials set up above (see section _Monitoring_). Download the
-docker-compose.yml or clone the repository and run `docker stack deploy -c mongosync/docker-compose.yml mongosync`.
+
+The `mongosync_mongosync` service was 1/1 on VM3 in the inventory and supports development database `ebldev`. Its source is the dedicated [mongosync repository](https://github.com/ElectronicBabylonianLiterature/mongosync). The historical Compose file and Docker secret names are reference material only; they are **not** authorization to recreate users, reset credentials or redeploy the live service.
 
 ### 4.12 Sitemap
 For the sitemap automated and manual update configuration, check the [Sitemap section](https://github.com/ElectronicBabylonianLiterature/ebl-frontend#sitemap) of the Frontend repository documentation.
 
 ## 5. Troubleshooting
+
+Start with the [day-to-day operations guide](docs/day-to-day-operations.md) and read-only checks. Changes to services, firewall or credentials require an approved operational procedure.
 ### 5.1. Consul fails to elect a leader
-- Scale replicas to 0.
-- Scale replica back to desired value.
-When the new replicas join Consul should clean up old nodes and elect a new leader. To avoid stale nodes in the config the replicas should be shut down before the leader.
+
+The Consul leader service was 1/1 on VM1 at the audit, separately from the stopped Traefik 1.7 fallback. Check task state and bounded logs privately, then escalate to the owner. Do not treat scaling Consul to zero as a routine repair.
 
 ### 5.2. Redeployment fails in Swarmpit UI
-Long commands (e.g. `node-exporter`) get messed up and `$` is unescaped in the "Current engine state". If you have to redeploy a service/stack edit the "Last deployed" instead
-or copy the correct values from the server.
+Historical Swarmpit versions may re-serialize commands or escape `$` incorrectly. Compare the current VM/Swarmpit service with the last **approved private deployment configuration** before any authorized change; do not trust UI-generated YAML or this repository as the deploy source.
 
 ### 5.3. Forgotten Grafana password
-The Grafana admin password is set up only on first run. It can be resetted later vie the CLI `docker exec -ti <container id> grafana-cli admin reset-admin-password <new password>`.
+Grafana account recovery requires an approved privileged maintenance process. Do not put new passwords into public commands, PRs or ticket logs. Contact the responsible credential owner.
 
 ### 5.4. MongoDB exporter errors
 
@@ -424,7 +406,7 @@ Inspect the affected task logs, host resource usage, disk capacity, network conn
 If SSH or console access is unavailable, or Swarm quorum is lost, contact the responsible LRZ/ITG administrators with the affected hosts, errors and last known healthy state.
 
 ### 5.6. Low diskspace
-Diskspace can be freed by removing old Docker images etc. See: [﻿https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127](https://stackoverflow.com/questions/32723111/how-to-remove-old-and-unused-docker-images/32723127#32723127) 
+Check `df -h /` and relevant volumes/images read-only. On 19 November, root utilization was VM1 44%, VM2 32%, VM3 62%. Never prune images, delete volumes or change retention without service-owner approval; inactive services may still have important data. 
 
 ### 5.7. Expired or invalid HTTPS certificate
 
@@ -438,11 +420,3 @@ When investigating a certificate problem:
 4. Follow the certificate recovery and rollback guidance in the [Traefik 3 operations guide](docs/traefik3-production-runbook.md).
 
 **Do not restart the legacy Traefik 1.7 service as a certificate-renewal procedure.** That service is reserved for a controlled full-ingress rollback after the new proxy has relinquished ports 80/443.
-
-<!-- eraser-additional-content -->
-## Diagrams
-<!-- eraser-additional-files -->
-<a href="/README-Electronic Babylonian Library Infrastructure-1.eraserdiagram" data-element-id="UVNfbY_g6XF6ZtcWBPJcl"><img src="/.eraser/aGds6s7Uqq35ZqoSOch1___8rEEI9hk1jV4GniI7pAK1HIhMOW2___---diagram----2c4dee53292b4de7b07e1bfb1ebbc06b-Electronic-Babylonian-Library-Infrastructure.png" alt="" data-element-id="UVNfbY_g6XF6ZtcWBPJcl" /></a>
-<!-- end-eraser-additional-files -->
-<!-- end-eraser-additional-content -->
-<!--- Eraser file: https://app.eraser.io/workspace/aGds6s7Uqq35ZqoSOch1 --->

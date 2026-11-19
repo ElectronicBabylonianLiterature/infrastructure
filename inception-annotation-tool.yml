@@ -1,3 +1,6 @@
+# HISTORICAL REFERENCE ONLY: no active Inception service appeared in the 2026-11-19 Swarm inventory.
+# Named Inception volumes remain on VM3; do not assume they are disposable or deploy this example.
+# The example DBPASSWORD fallback is not suitable for production; actual app status is unverified.
 version: '3.8'
 
 services:

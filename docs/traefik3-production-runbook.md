@@ -1,6 +1,6 @@
 # Traefik 3 production operations
 
-This guide describes how to operate and recover the eBL reverse proxy in Docker Swarm. It is intended for infrastructure maintainers with authorized access to the production cluster. Use it alongside [traefik3-production.yml](../traefik3-production.yml), [swarmprom.yml](../swarmprom.yml), and the repository [README](../README.md).
+This guide describes authorized operation and recovery of the eBL reverse proxy. **The running VM/Swarmpit-managed configuration is the operational authority; this public GitHub repository is a documentary reference, not the source used for deployment.** Use it with the [production inventory](production-inventory-2026-11-19.md), [day-to-day operations](day-to-day-operations.md), and [README](../README.md). The reference [Traefik YAML](../traefik3-production.yml) is **not** a replacement for the actual private production definition.
 
 ## Service topology
 
@@ -57,7 +57,7 @@ An Alertmanager connection is necessary but does not, by itself, prove that noti
 
 ## Deployment and configuration management
 
-The repository's [Traefik 3 stack manifest](../traefik3-production.yml) documents the service topology and deployment settings. **Do not treat it as a verified one-command disaster-recovery deployment until the following prerequisites are satisfied:**
+**Production changes are made on the VMs and through Swarmpit under an approved operator process.** The reference [Traefik 3 YAML](../traefik3-production.yml) documents a previously observed topology; it is **not** the deployment source and must not be used for a one-command disaster-recovery rollout. For a separately authorized incident response or change, confirm the following against the private live configuration:
 
 1. Confirm that every referenced external Swarm config, network, and secret exists on the target cluster, and that approved copies of configuration sources are available to authorized operators.
 2. Compare the rendered stack specification with the current Swarm service, including command/arguments, labels, networks/aliases, mounted config and secret paths, volumes, resource limits, restart and update/rollback policies, logging, and published ports.
@@ -90,4 +90,4 @@ Do not delete rollback images, Docker secrets, or legacy config resources until 
 
 Production cutover, external HTTPS, ACME persistence, and Traefik 3 Prometheus/alert-rule loading were verified during the November 2026 migration. LAD subsequently confirmed normal API connectivity. These results establish past acceptance, not guaranteed future health.
 
-Before declaring the repository a complete recovery source, maintain approved copies of the non-secret Swarm configuration files, verify a safe full-stack deployment path, and exercise alert notification delivery and secure off-host ACME restoration. Keep this guide synchronized with significant infrastructure changes.
+**Do not declare this repository a full recovery source.** Store authoritative VM/Swarmpit configuration and sensitive values in approved restricted systems, verify operator-controlled recovery, and independently exercise alert notification delivery and secure off-host ACME restoration. The 19 November 2026 read-only audit confirmed production/staging/legacy task states and mounted config *names*, not private dynamic route bodies or notification delivery.
