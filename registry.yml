@@ -1,3 +1,5 @@
+# HISTORICAL REFERENCE ONLY: registry services and credentials are managed on VMs/Swarmpit.
+# Never redeploy this file or recreate secrets from public README instructions.
 version: '3.7'
 services:
   registry1:

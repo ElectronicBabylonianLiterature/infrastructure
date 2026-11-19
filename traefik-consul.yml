@@ -1,3 +1,5 @@
+# HISTORICAL / ROLLBACK REFERENCE ONLY: Traefik 1.7 has zero replicas in production.
+# Never scale legacy ingress while Traefik 3 owns host ports 80/443.
 version: '3.3'
 services:
   consul-leader:

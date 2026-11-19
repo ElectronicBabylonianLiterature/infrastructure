@@ -1,3 +1,5 @@
+# HISTORICAL NON-TLS BOOTSTRAP ONLY; not for the populated production MongoDB replica set.
+# Do not deploy this on existing VMs or replace live TLS-protected data services.
 version: '3.7'
 services:
   mongo1:

@@ -1,3 +1,7 @@
+# HISTORICAL REFERENCE ONLY (checked against live Swarm 2026-11-19).
+# Production is managed on VMs/Swarmpit, NOT deployed from this repository.
+# The live ebl stack also has ebl_sinkhole; Traefik 1.x labels below do not define current Traefik 3 routes.
+# Do not replace production or paste real secrets into this example.
 version: '3.7'
 services:
   ai-api:
