@@ -85,7 +85,7 @@ Monitoring and basic maintenance is primarily done via [﻿Swarmpit](https://swa
 
 ![Swarmpit interface — historical screenshot](img/swarmpit.png "")
 
-The screenshot is historical. For normal VM/Swarmpit-managed operations, use the [operations guide](docs/day-to-day-operations.md); the checked-in stack YAML is not a deployment source.
+The screenshot is historical. **To publish an application update**, use **Stacks → eBL → dropdown arrow next to Edit → Redeploy**. **To change eBL stack configuration**, use **Stacks → eBL → Edit → Last Deployed**, make the approved edits, and deploy. **Never deploy from `Current Engine`: this representation can corrupt/mis-serialize the deployed configuration and disrupt the system.** See the [step-by-step operations guide](docs/day-to-day-operations.md#deploying-ebl-through-swarmpit). The checked-in stack YAML is not a deployment source.
 
 ### Accessing the production VMs over SSH
 
@@ -289,7 +289,7 @@ The ingress service runs as one replica on the designated ingress node because h
 
 Swarmpit is already running behind Traefik 3. The 19 November inventory found **four** services: `swarmpit_app` on VM1, global `swarmpit_agent` on all VMs, and both `swarmpit_db` (CouchDB) and `swarmpit_influxdb` (InfluxDB) on VM2. Their storage uses named local volumes; preserve these during recovery.
 
-The checked-in [swarmpit.yml](swarmpit.yml) is a **historical, incomplete reference**: it omits InfluxDB, and CouchDB placement/resources differ from production. Do not deploy it as a replacement. For safe inspection and approved operational changes, use [Swarmpit](https://www.ebl.badw.de/cluster/swarmpit/) and the [operations guide](docs/day-to-day-operations.md).
+The checked-in [swarmpit.yml](swarmpit.yml) is a **historical, incomplete reference**: it omits InfluxDB, and CouchDB placement/resources differ from production. Do not deploy it as a replacement. For the **eBL application**: choose **Stacks → eBL → dropdown next to Edit → Redeploy** for application updates, or **Stacks → eBL → Edit → Last Deployed** to make and deploy configuration changes. **Never deploy `Current Engine`**. The exact [steps and verification safeguards](docs/day-to-day-operations.md#deploying-ebl-through-swarmpit) are in the operations guide.
 
 #### 4.5.3. Swarmprom
 
@@ -378,7 +378,7 @@ Start with the [day-to-day operations guide](docs/day-to-day-operations.md) and 
 The Consul leader service was 1/1 on VM1 at the audit, separately from the stopped Traefik 1.7 fallback. Check task state and bounded logs privately, then escalate to the owner. Do not treat scaling Consul to zero as a routine repair.
 
 ### 5.2. Redeployment fails in Swarmpit UI
-Historical Swarmpit versions may re-serialize commands or escape `$` incorrectly. Compare the current VM/Swarmpit service with the last **approved private deployment configuration** before any authorized change; do not trust UI-generated YAML or this repository as the deploy source.
+**Known eBL deployment pitfall:** Swarmpit's `Current Engine` stack representation can mis-serialize commands and escaped values and break deployment. **Never deploy an eBL configuration from `Current Engine`.** When editing the application stack, open **Stacks → eBL → Edit**, select **`Last Deployed`**, make the intended changes and deploy from that source. For a routine image update, instead choose **Stacks → eBL → dropdown arrow next to Edit → Redeploy** without editing. See the [complete workflow](docs/day-to-day-operations.md#deploying-ebl-through-swarmpit).
 
 ### 5.3. Forgotten Grafana password
 Grafana account recovery requires an approved privileged maintenance process. Do not put new passwords into public commands, PRs or ticket logs. Contact the responsible credential owner.

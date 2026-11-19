@@ -41,14 +41,33 @@ These commands display limited metadata, but review their outputs before sharing
 
 For troubleshooting, view bounded task logs **privately** through Swarmpit or approved CLI procedures. Logs may contain sensitive material, including request headers, IDs or access information; do not paste unredacted logs into the public repository.
 
-## Normal image rollout — operational description, not a deployment recipe
+## Deploying eBL through Swarmpit
 
-1. The eBL frontend and API GitHub workflows build and publish images to the private registry after relevant changes pass CI. Merging a PR **does not itself prove that the live Swarm service changed images**.
-2. The approved operator checks the exact target image/version, available capacity and the actual service definition in **Swarmpit/the VM**. Confirm any dependencies, environment/secret references and current rollback path without exporting their contents.
-3. If a rollout is approved, it is performed through the existing **VM/Swarmpit-managed** process, not by running a checked-in `*.yml` file from GitHub. This guide deliberately does not authorize or prescribe a production mutation.
-4. Verify post-change task placement, replica availability, actual application/API responses, HTTPS, and relevant monitoring; record the observed image digest and sanitized outcome in the restricted operations log.
+> **Critical production safeguard — use `Last Deployed`, NEVER `Current Engine` for stack configuration edits.** The `Current Engine` representation has caused broken/mis-serialized configurations when redeployed, particularly with commands and escaped variables. For eBL, edit only the **`Last Deployed`** stack definition. Do not use the `Current Engine` representation as a starting point, and do not deploy it.
 
-**Do not assume** the historical `swarmpit.yml`, `ebl.yml`, registry or monitoring YAML is a faithful export of the running service. Some files intentionally retain Traefik 1.x labels and incomplete historical stacks.
+These are the current operator-reported steps for the **eBL application stack** in Swarmpit. They are two different workflows; use **Redeploy** for an application update and **Edit** only when changing the actual stack configuration. Both are production-changing actions and require authorization and post-deployment verification.
+
+### Redeploy application changes (without editing the stack configuration)
+
+1. Confirm the relevant frontend or API change has been merged, its CI build/publish succeeded, and the intended image is available in the private registry. Merging alone does not update running containers.
+2. Open [Swarmpit](https://www.ebl.badw.de/cluster/swarmpit/) with the appropriate administrative permissions.
+3. Navigate to **Stacks → eBL** (the running `ebl` application stack).
+4. Find **Edit** and click the **dropdown arrow next to Edit** — **not** the Edit action itself.
+5. Select **Redeploy** from the dropdown to redeploy the existing eBL stack definition. Complete the UI confirmation if prompted. **Do not switch to Current Engine or edit/recreate a stack definition for a routine image redeploy.**
+6. Monitor service tasks and replicas during the rollout; verify that the intended image is actually running, the frontend and API respond correctly, HTTPS works, and no unexpected task failures occur. Escalate if the image has not changed or service health deteriorates; do not repeatedly redeploy blindly.
+
+### Edit and deploy eBL stack configuration
+
+1. Obtain approval for the configuration change and retain a restricted, recoverable copy of the last known-good deployment definition. Review impacts on credentials, volumes, networks, health, replicas and routing before editing.
+2. Open **Swarmpit → Stacks → eBL → Edit**.
+3. In the editor, **select `Last Deployed`**, **NOT `Current Engine`**. Confirm the selected source **before making changes and again before deploying**. If `Last Deployed` is missing or cannot be selected, **stop** and contact the infrastructure maintainer rather than deploying `Current Engine`.
+4. Make the intended, minimal configuration changes **in `Last Deployed`**. Preserve existing service definitions, variables, secrets and escape sequences unless the change explicitly calls for modifying them. **Do not paste `ebl.yml` from GitHub**; it is a historical reference, not the running stack configuration.
+5. Deploy the edited stack configuration using Swarmpit's deployment action only after reviewing the diff and confirming `Last Deployed` is still the selected source.
+6. Monitor task rollout, replica counts, service image/settings and real frontend/API behavior. If the result is unsafe, follow the approved recovery procedure using the last known-good configuration; do not attempt to recover by deploying `Current Engine`.
+
+**Keep these workflows distinct:** **Stacks → eBL → dropdown next to Edit → Redeploy** for routine published application changes; **Stacks → eBL → Edit → Last Deployed → edit → Deploy** for deliberate configuration changes.
+
+The checked-in `swarmpit.yml`, `ebl.yml`, registry and monitoring YAML are historical references and may omit live services or contain Traefik 1.x labels. The steps above are specifically for the **eBL** application stack; do not assume other infrastructure stacks have identical deployment requirements.
 
 ## Triage map
 
