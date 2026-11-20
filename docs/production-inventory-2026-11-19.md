@@ -55,9 +55,9 @@ No active Inception application service was observed in the cluster-wide invento
 
 ## Reference files and operational drift
 
-- [`ebl.yml`](../ebl.yml) is a historical/reference example and lacks the live sinkhole. Its Traefik v1 routing labels do not express the effective Traefik 3 dynamic-file routes. Do not use it as an exact production export.
-- [`swarmpit.yml`](../swarmpit.yml) predates the live InfluxDB service and differs from live CouchDB placement/resource settings. It must not be deployed as a replacement for the actual Swarmpit-managed stack.
-- [`swarmprom.yml`](../swarmprom.yml) is a reference, not a secret-complete live deployment source. The active Prometheus service mounts `node_rules` and `task_rules_tls3_20261113T213540Z`; the audit did **not** read the config bodies or prove alert delivery.
+- [`ebl.yml`](../reference/application/ebl.yml) is a historical/reference example and lacks the live sinkhole. Its Traefik v1 routing labels do not express the effective Traefik 3 dynamic-file routes. Do not use it as an exact production export.
+- [`swarmpit.yml`](../reference/monitoring/swarmpit.yml) predates the live InfluxDB service and differs from live CouchDB placement/resource settings. It must not be deployed as a replacement for the actual Swarmpit-managed stack.
+- [`swarmprom.yml`](../reference/monitoring/swarmprom.yml) is a reference, not a secret-complete live deployment source. The active Prometheus service mounts `node_rules` and `task_rules_tls3_20261113T213540Z`; the audit did **not** read the config bodies or prove alert delivery.
 - [Traefik 3 runbook](traefik3-production-runbook.md) correctly identifies active production, staging and stopped fallback services. The production service references `traefik3stage4-static-20261113` and `traefik3acme-dynamic-20261113T205821Z`. The full private dynamic routing content was intentionally not collected.
 - This repository is **documentation only**: configuration changes, rollouts and rollbacks are coordinated on the VMs/in Swarmpit under maintainer authorization.
 
