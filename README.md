@@ -49,7 +49,7 @@ The active sinkhole was present on VM2, but its effectiveness behind Traefik 3 w
 ## Operations and safety
 
 - **Access:** [BAdW VPN and individually authorized SSH accounts](docs/vm-access.md). VM1 is the only manager; do not treat a worker's local container listing as a cluster inventory.
-- **Backups:** LRZ VM backup coverage was **confirmed by the eBL operator** in November 2026; the recorded schedule is six snapshots daily with a 14-day retention. This audit did not establish successful restoration or MongoDB-consistent recovery. See [operations and recovery](docs/day-to-day-operations.md#backups-and-recovery).
+- **Backups:** LRZ VM backup coverage was **confirmed by the eBL operator** in November 2026. The previously documented schedule lists six daily snapshots at **02:20, 06:20, 10:20, 14:20, 18:20 and 22:20**, retained for **14 days**. The VM audit did not independently inspect LRZ backup policies or establish successful restoration/MongoDB-consistent recovery. See [operations and recovery](docs/day-to-day-operations.md#backups-and-recovery).
 - **Monitoring:** Prometheus, Grafana, exporters and certificate alerts are documented; live scrape success, notification delivery and database replica-set health require separate authorized checks.
 - **Networking:** Published MongoDB and registry ports and the Docker metrics listener were observed. Their external reachability and the LRZ perimeter firewall rules were **not verified**; do not claim exposure or safety from publication alone.
 - **References:** The [sample manifests](reference/README.md) intentionally preserve historical information. Do not infer that a reference equals the current VM/Swarmpit configuration.
