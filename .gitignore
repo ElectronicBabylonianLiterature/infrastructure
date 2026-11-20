@@ -1,5 +1,6 @@
 .DS_Store
-# Local credentials and private infrastructure evidence: never commit.
+
+# Local credentials, certificates and private operational evidence: never commit.
 .env
 .env.*
 !.env.example
@@ -7,5 +8,19 @@
 *.secret
 *.credentials
 *.key
+*.pem
+*.p12
+*.pfx
+*.p8
+*.ppk
+*.kdbx
 acme.json
 PRIVATE-DO-NOT-SHARE/
+.ebl-infra-audits/
+**/.ebl-infra-audits/
+ebl-audit-*/
+*.private-audit.json
+
+# Local tooling
+__pycache__/
+*.pyc

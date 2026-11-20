@@ -6,7 +6,7 @@
 
 ## Access and responsibility
 
-1. Obtain your **individual authorized VM account** and BAdW full-tunnel VPN access through the institute's approved administrators. The [README SSH section](../README.md#accessing-the-production-vms-over-ssh) contains hostnames/IPs and Windows/macOS/Linux examples. Aliases such as `caic1` work only after being configured on the local workstation.
+1. Obtain your **individual authorized VM account** and BAdW full-tunnel VPN access through the institute's approved administrators. The [VM access guide](vm-access.md#connect-over-ssh) contains hostnames/IPs and Windows/macOS/Linux examples. Aliases such as `caic1` work only after being configured on the local workstation.
 2. VM1 (`badwcai-ebl01`) is the **single Swarm manager** and public Traefik 3 ingress node. VM2 and VM3 are workers. Use VM1 for Swarm-wide commands; a worker cannot provide the manager's service inventory.
 3. Swarmpit is the day-to-day UI for seeing Swarm stacks, services, replicas, logs, and authorized redeployments: [Swarmpit](https://www.ebl.badw.de/cluster/swarmpit/). Access requires the appropriate account/controls; do not infer that every publicly routed admin page is safe to use without checking authentication.
 4. Credentials, private Swarm configs, network access lists, and ACME private material remain in the institution's approved restricted stores/on the hosts. Do not copy them into GitHub, PR comments, incident tickets, or chat.
@@ -67,7 +67,7 @@ These are the current operator-reported steps for the **eBL application stack** 
 
 **Keep these workflows distinct:** **Stacks → eBL → dropdown next to Edit → Redeploy** for routine published application changes; **Stacks → eBL → Edit → Last Deployed → edit → Deploy** for deliberate configuration changes.
 
-The checked-in `swarmpit.yml`, `ebl.yml`, registry and monitoring YAML are historical references and may omit live services or contain Traefik 1.x labels. The steps above are specifically for the **eBL** application stack; do not assume other infrastructure stacks have identical deployment requirements.
+The [checked-in historical references](../reference/README.md), including `swarmpit.yml`, `ebl.yml`, registry and monitoring YAML, are historical examples and may omit live services or contain Traefik 1.x labels. The steps above are specifically for the **eBL** application stack; do not assume other infrastructure stacks have identical deployment requirements.
 
 ## Triage map
 

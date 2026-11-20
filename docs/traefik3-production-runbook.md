@@ -1,6 +1,6 @@
 # Traefik 3 production operations
 
-This guide describes authorized operation and recovery of the eBL reverse proxy. **The running VM/Swarmpit-managed configuration is the operational authority; this public GitHub repository is a documentary reference, not the source used for deployment.** Use it with the [production inventory](production-inventory-2026-11-19.md), [day-to-day operations](day-to-day-operations.md), and [README](../README.md). The reference [Traefik YAML](../traefik3-production.yml) is **not** a replacement for the actual private production definition.
+This guide describes authorized operation and recovery of the eBL reverse proxy. **The running VM/Swarmpit-managed configuration is the operational authority; this public GitHub repository is a documentary reference, not the source used for deployment.** Use it with the [production inventory](production-inventory-2026-11-19.md), [day-to-day operations](day-to-day-operations.md), and [README](../README.md). The reference [Traefik YAML](../reference/networking/traefik3-production.yml) is **not** a replacement for the actual private production definition.
 
 ## Service topology
 
@@ -45,7 +45,7 @@ Verify all four public domains from an independent client with standard TLS trus
 
 Prometheus scrapes production Traefik through `traefik3parity_proxy:9100`. During the fallback retention period, the old `traefik:8080` target can legitimately be down while Traefik 1.7 has zero replicas; this does not mean the production ingress is unhealthy.
 
-Traefik exports `traefik_tls_certs_not_after` for its ACME-managed certificates. The [certificate alert definitions](../prometheus/traefik3-certificate-alerts.yml) cover:
+Traefik exports `traefik_tls_certs_not_after` for its ACME-managed certificates. The [certificate alert definitions](../reference/monitoring/traefik3-certificate-alerts.yml) cover:
 
 - A certificate with fewer than 30 days remaining.
 - Fewer than the expected two certificate-expiration metric series.
@@ -57,7 +57,7 @@ An Alertmanager connection is necessary but does not, by itself, prove that noti
 
 ## Deployment and configuration management
 
-**Production changes are made on the VMs and through Swarmpit under an approved operator process.** The reference [Traefik 3 YAML](../traefik3-production.yml) documents a previously observed topology; it is **not** the deployment source and must not be used for a one-command disaster-recovery rollout. For a separately authorized incident response or change, confirm the following against the private live configuration:
+**Production changes are made on the VMs and through Swarmpit under an approved operator process.** The reference [Traefik 3 YAML](../reference/networking/traefik3-production.yml) documents a previously observed topology; it is **not** the deployment source and must not be used for a one-command disaster-recovery rollout. For a separately authorized incident response or change, confirm the following against the private live configuration:
 
 1. Confirm that every referenced external Swarm config, network, and secret exists on the target cluster, and that approved copies of configuration sources are available to authorized operators.
 2. Compare the rendered stack specification with the current Swarm service, including command/arguments, labels, networks/aliases, mounted config and secret paths, volumes, resource limits, restart and update/rollback policies, logging, and published ports.

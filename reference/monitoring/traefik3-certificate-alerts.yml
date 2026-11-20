@@ -1,5 +1,7 @@
-# Merge the group below into the active swarm_task.rules.yml after reviewing it.
-# The production Prometheus instance does not currently load this file directly.
+# DOCUMENTATION REFERENCE ONLY; this standalone rule group is not loaded directly.
+# The combined TLS rules were observed installed through immutable Swarm config
+# task_rules_tls3_20261113T213540Z in November 2026. This extract is not a
+# complete replacement for the active task rules or a proof of alert delivery.
 groups:
 - name: ebl-traefik3-certificates
   rules:

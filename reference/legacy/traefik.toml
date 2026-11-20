@@ -1,3 +1,6 @@
+# HISTORICAL TRAEFIK 1.7 REFERENCE (not the production Traefik 3 configuration).
+# Retained while the stopped legacy ingress is available for controlled rollback.
+# Do not use it to generate or replace the current VM/Swarmpit-managed proxy.
 constraints = ["tag==traefik-public"]
 logLevel = "INFO"
 defaultEntryPoints = ["http", "https"]
